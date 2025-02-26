@@ -58,10 +58,7 @@ func writeLink(link string) string {
 
 func hasLink(slug string) bool {
 	_, ok := Database[slug]
-	if ok {
-		return true
-	}
-	return false
+	return ok
 }
 
 func badRequest(w http.ResponseWriter) {
