@@ -2,12 +2,12 @@
 package main
 
 import (
-	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 )
 
-var fullLink string = "https://google.com"
+var Database = map[string]string{}
 
 func shortLink(w http.ResponseWriter, req *http.Request) {
 	body, err := io.ReadAll(req.Body)
@@ -15,9 +15,9 @@ func shortLink(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, "Ошибка чтения тела запроса", http.StatusInternalServerError)
 		return
 	}
-	req.Body.Close()
+	defer req.Body.Close()
 
-	fullLink = string(body)
+	link := writeLink(string(body))
 
 	// Отправляем ответ
 	baseURL := "http://" + req.Host
@@ -25,14 +25,17 @@ func shortLink(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusCreated)
 
-	io.WriteString(w, baseURL+"/EwHXdJfB")
+	io.WriteString(w, baseURL+"/"+link)
 }
 
 func getFullLink(w http.ResponseWriter, req *http.Request) {
-	// id := req.PathValue("id")
-	fmt.Println(fullLink)
-	w.Header().Add("Location", fullLink)
-	w.WriteHeader(http.StatusTemporaryRedirect)
+	id := req.PathValue("id")
+	if hasLink(id) {
+		w.Header().Add("Location", Database[id])
+		w.WriteHeader(http.StatusTemporaryRedirect)
+	} else {
+		badRequest(w)
+	}
 }
 
 // функция main вызывается автоматически при запуске приложения
@@ -45,4 +48,23 @@ func main() {
 	if err := http.ListenAndServe(":8080", mux); err != nil {
 		panic(err)
 	}
+}
+
+func writeLink(link string) string {
+	index := "link" + strconv.Itoa(len(Database)+1)
+	Database[index] = link
+	return index
+}
+
+func hasLink(slug string) bool {
+	_, ok := Database[slug]
+	if ok {
+		return true
+	}
+	return false
+}
+
+func badRequest(w http.ResponseWriter) {
+	w.WriteHeader(http.StatusBadRequest)
+	io.WriteString(w, "Bad request")
 }
