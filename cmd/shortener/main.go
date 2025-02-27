@@ -4,6 +4,7 @@ package main
 import (
 	"io"
 	"net/http"
+	"net/url"
 	"strconv"
 )
 
@@ -17,15 +18,21 @@ func shortLink(w http.ResponseWriter, req *http.Request) {
 	}
 	defer req.Body.Close()
 
-	link := writeLink(string(body))
+	isCorrectLink := isUrl(string(body))
 
-	// Отправляем ответ
-	baseURL := "http://" + req.Host
+	if isCorrectLink {
+		link := writeLink(string(body))
 
-	w.Header().Set("Content-Type", "text/plain")
-	w.WriteHeader(http.StatusCreated)
+		// Отправляем ответ
+		baseURL := "http://" + req.Host
 
-	io.WriteString(w, baseURL+"/"+link)
+		w.Header().Set("Content-Type", "text/plain")
+		w.WriteHeader(http.StatusCreated)
+
+		io.WriteString(w, baseURL+"/"+link)
+	} else {
+		badRequest(w)
+	}
 }
 
 func getFullLink(w http.ResponseWriter, req *http.Request) {
@@ -64,4 +71,12 @@ func hasLink(slug string) bool {
 func badRequest(w http.ResponseWriter) {
 	w.WriteHeader(http.StatusBadRequest)
 	io.WriteString(w, "Bad request")
+}
+
+func isUrl(link string) bool {
+	if len([]rune(link)) > 0 {
+		parsedUrl, err := url.Parse(link)
+		return err == nil && parsedUrl.Scheme != "" && parsedUrl.Host != ""
+	}
+	return false
 }
