@@ -18,7 +18,7 @@ func shortLink(w http.ResponseWriter, req *http.Request) {
 	}
 	defer req.Body.Close()
 
-	isCorrectLink := isUrl(string(body))
+	isCorrectLink := isURL(string(body))
 
 	if isCorrectLink {
 		link := writeLink(string(body))
@@ -73,10 +73,10 @@ func badRequest(w http.ResponseWriter) {
 	io.WriteString(w, "Bad request")
 }
 
-func isUrl(link string) bool {
+func isURL(link string) bool {
 	if len([]rune(link)) > 0 {
-		parsedUrl, err := url.Parse(link)
-		return err == nil && parsedUrl.Scheme != "" && parsedUrl.Host != ""
+		parsedURL, err := url.Parse(link)
+		return err == nil && parsedURL.Scheme != "" && parsedURL.Host != ""
 	}
 	return false
 }
