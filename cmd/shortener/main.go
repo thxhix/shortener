@@ -36,7 +36,7 @@ func shortLink(w http.ResponseWriter, req *http.Request) {
 }
 
 func getFullLink(w http.ResponseWriter, req *http.Request) {
-	id := req.PathValue("id")
+	id := req.URL.Path[1:]
 	if hasLink(id) {
 		w.Header().Add("Location", Database[id])
 		w.WriteHeader(http.StatusTemporaryRedirect)

@@ -1,0 +1,132 @@
+// пакеты исполняемых приложений должны называться main
+package main
+
+import (
+	"bytes"
+	"fmt"
+	"io"
+	"net/http"
+	"net/http/httptest"
+	"regexp"
+	"testing"
+
+	"github.com/stretchr/testify/require"
+)
+
+func Test_shortLink(t *testing.T) {
+	type want struct {
+		contentType string
+		statusCode  int
+	}
+
+	tests := []struct {
+		name   string
+		want   want
+		action string
+		method string
+		answer string
+		body   string
+	}{
+		{
+			name: "Empty link request",
+			want: want{
+				contentType: "text/plain",
+				statusCode:  400,
+			},
+			action: "/",
+			method: http.MethodPost,
+			body:   "",
+		},
+		{
+			name: "Success request",
+			want: want{
+				contentType: "text/plain",
+				statusCode:  201,
+			},
+			action: "/",
+			method: http.MethodPost,
+			body:   "https://ya.ru",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.method, func(t *testing.T) {
+			rBody := bytes.NewBufferString(tt.body)
+
+			r := httptest.NewRequest(tt.method, tt.action, rBody)
+			w := httptest.NewRecorder()
+
+			shortLink(w, r)
+
+			// Код ответа
+			require.Equal(t, tt.want.statusCode, w.Code, "Код ответа не совпадает с ожидаемым")
+
+			// Проверяем ответ, если вернулся 201
+			if w.Code == http.StatusCreated {
+				body, err := io.ReadAll(w.Body)
+				require.NoError(t, err, "Не удалось получить ответ")
+
+				URLPattern := `^http://example.com/` // Регулярка для ссылки
+				matched, err := regexp.MatchString(URLPattern, string(body))
+				require.NoError(t, err, "Не удалось прочитать ответ")
+				require.True(t, matched, "Сервер вернул не ссылку")
+
+				fmt.Println("Ответ сервера:", matched)
+			}
+		})
+	}
+}
+
+func Test_getFullLink(t *testing.T) {
+	type want struct {
+		contentType string
+		statusCode  int
+		header      string
+	}
+	tests := []struct {
+		name     string
+		want     want
+		action   string
+		method   string
+		database map[string]string
+	}{
+		{
+			name: "No redirect request",
+			want: want{
+				contentType: "text/plain",
+				statusCode:  400,
+			},
+			action:   "/no-redirect",
+			method:   http.MethodGet,
+			database: map[string]string{},
+		},
+		{
+			name: "Has redirect request",
+			want: want{
+				contentType: "text/plain",
+				statusCode:  http.StatusTemporaryRedirect,
+				header:      "https://ya.ru",
+			},
+			action:   "/link1",
+			method:   http.MethodGet,
+			database: map[string]string{"link1": "https://ya.ru"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			// Создаём запрос
+			r := httptest.NewRequest(tt.method, tt.action, nil)
+			w := httptest.NewRecorder()
+
+			// Обновляем базу данных перед каждым тестом
+			Database = tt.database
+
+			getFullLink(w, r)
+
+			// Код ответа
+			require.Equal(t, tt.want.statusCode, w.Code, "Код ответа не совпадает с ожидаемым")
+			require.Equal(t, tt.want.header, w.Header().Get("Location"), "Header Location не совпадает с ожидаемым")
+		})
+	}
+}
