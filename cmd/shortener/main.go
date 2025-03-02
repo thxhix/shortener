@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+
+	"github.com/go-chi/chi/v5"
 )
 
 var Database = map[string]string{}
@@ -36,7 +38,7 @@ func shortLink(w http.ResponseWriter, req *http.Request) {
 }
 
 func getFullLink(w http.ResponseWriter, req *http.Request) {
-	id := req.URL.Path[1:]
+	id := chi.URLParam(req, "id")
 	if hasLink(id) {
 		w.Header().Add("Location", Database[id])
 		w.WriteHeader(http.StatusTemporaryRedirect)
@@ -47,12 +49,14 @@ func getFullLink(w http.ResponseWriter, req *http.Request) {
 
 // функция main вызывается автоматически при запуске приложения
 func main() {
-	mux := http.NewServeMux()
+	r := chi.NewRouter()
 
-	mux.HandleFunc("POST /", shortLink)
-	mux.HandleFunc("GET /{id}", getFullLink)
+	r.Route("/", func(r chi.Router) {
+		r.Post("/", shortLink)
+		r.Get("/{id}", getFullLink)
+	})
 
-	if err := http.ListenAndServe(":8080", mux); err != nil {
+	if err := http.ListenAndServe(":8080", r); err != nil {
 		panic(err)
 	}
 }

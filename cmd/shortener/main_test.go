@@ -10,6 +10,7 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/require"
 )
 
@@ -114,17 +115,20 @@ func Test_getFullLink(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			r := chi.NewRouter()
+			r.Post("/", shortLink)
+			r.Get("/{id}", getFullLink)
 
-			// Создаём запрос
-			r := httptest.NewRequest(tt.method, tt.action, nil)
-			w := httptest.NewRecorder()
-
-			// Обновляем базу данных перед каждым тестом
 			Database = tt.database
 
-			getFullLink(w, r)
+			req, err := http.NewRequest(tt.method, tt.action, nil)
+			w := httptest.NewRecorder()
+			if err != nil {
+				panic(err)
+			}
 
-			// Код ответа
+			r.ServeHTTP(w, req)
+
 			require.Equal(t, tt.want.statusCode, w.Code, "Код ответа не совпадает с ожидаемым")
 			require.Equal(t, tt.want.header, w.Header().Get("Location"), "Header Location не совпадает с ожидаемым")
 		})
