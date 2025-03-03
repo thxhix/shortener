@@ -1,4 +1,3 @@
-// пакеты исполняемых приложений должны называться main
 package main
 
 import (
@@ -86,10 +85,8 @@ func badRequest(w http.ResponseWriter) {
 	io.WriteString(w, "Bad request")
 }
 
+// Проверка валидности URL
 func isURL(link string) bool {
-	if len([]rune(link)) > 0 {
-		parsedURL, err := url.Parse(link)
-		return err == nil && parsedURL.Scheme != "" && parsedURL.Host != ""
-	}
-	return false
+	parsedURL, err := url.Parse(link)
+	return err == nil && parsedURL.Scheme != "" && parsedURL.Host != ""
 }
