@@ -7,7 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"regexp"
+	"net/url"
 	"testing"
 
 	"github.com/go-chi/chi/v5"
@@ -56,23 +56,22 @@ func Test_shortLink(t *testing.T) {
 			r := httptest.NewRequest(tt.method, tt.action, rBody)
 			w := httptest.NewRecorder()
 
+			hostParams.Set("localhost:8080")
+			destinationURL.Set("http://localhost:8080")
+
 			shortLink(w, r)
 
 			// Код ответа
 			require.Equal(t, tt.want.statusCode, w.Code, "Код ответа не совпадает с ожидаемым")
 
 			// Проверяем ответ, если вернулся 201
-			if w.Code == http.StatusCreated {
-				body, err := io.ReadAll(w.Body)
-				require.NoError(t, err, "Не удалось получить ответ")
+			body, err := io.ReadAll(w.Body)
+			require.NoError(t, err, "Не удалось получить ответ")
 
-				URLPattern := `^http://example.com/` // Регулярка для ссылки
-				matched, err := regexp.MatchString(URLPattern, string(body))
-				require.NoError(t, err, "Не удалось прочитать ответ")
-				require.True(t, matched, "Сервер вернул не ссылку")
+			parsedURL, err := url.Parse(string(body))
+			require.NoError(t, err, "Не удалось прочитать ответ")
 
-				fmt.Println("Ответ сервера:", matched)
-			}
+			fmt.Println("Ответ сервера:", parsedURL)
 		})
 	}
 }

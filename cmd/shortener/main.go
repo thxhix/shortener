@@ -2,6 +2,7 @@
 package main
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -26,7 +27,7 @@ func shortLink(w http.ResponseWriter, req *http.Request) {
 		link := writeLink(string(body))
 
 		// Отправляем ответ
-		baseURL := "http://" + req.Host
+		baseURL := destinationURL.String()
 
 		w.Header().Set("Content-Type", "text/plain")
 		w.WriteHeader(http.StatusCreated)
@@ -49,6 +50,11 @@ func getFullLink(w http.ResponseWriter, req *http.Request) {
 
 // функция main вызывается автоматически при запуске приложения
 func main() {
+	hostParams.Set("localhost:8080")
+	destinationURL.Set("http://localhost:8080")
+
+	parseFlags()
+
 	r := chi.NewRouter()
 
 	r.Route("/", func(r chi.Router) {
@@ -56,7 +62,10 @@ func main() {
 		r.Get("/{id}", getFullLink)
 	})
 
-	if err := http.ListenAndServe(":8080", r); err != nil {
+	fmt.Println("Запускаю сервер по адресу:", hostParams.String())
+	fmt.Println("Вывод по адресу:", destinationURL.String())
+
+	if err := http.ListenAndServe(hostParams.String(), r); err != nil {
 		panic(err)
 	}
 }
