@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
@@ -53,6 +54,14 @@ func main() {
 	destinationURL.Set("http://localhost:8080")
 
 	parseFlags()
+
+	if envRunAddr := os.Getenv("SERVER_ADDRESS"); envRunAddr != "" {
+		hostParams.Set(envRunAddr)
+	}
+
+	if envDestinationAddr := os.Getenv("BASE_URL"); envDestinationAddr != "" {
+		destinationURL.Set(envDestinationAddr)
+	}
 
 	r := chi.NewRouter()
 
