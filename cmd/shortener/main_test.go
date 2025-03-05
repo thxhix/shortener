@@ -3,16 +3,23 @@ package main
 
 import (
 	"bytes"
-	"fmt"
-	"io"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
+	"os"
 	"testing"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/require"
+	"github.com/thxhix/shortener/internal/app/config"
+	"github.com/thxhix/shortener/internal/app/router"
 )
+
+var cfg config.Config
+
+func TestMain(m *testing.M) {
+	cfg = *config.InitConfig()
+
+	os.Exit(m.Run())
+}
 
 func Test_shortLink(t *testing.T) {
 	type want struct {
@@ -42,36 +49,29 @@ func Test_shortLink(t *testing.T) {
 			name: "Success request",
 			want: want{
 				contentType: "text/plain",
-				statusCode:  201,
+				statusCode:  http.StatusCreated,
 			},
 			action: "/",
 			method: http.MethodPost,
 			body:   "https://ya.ru",
 		},
 	}
+
+	r := router.InitRouter(&cfg)
+
 	for _, tt := range tests {
 		t.Run(tt.method, func(t *testing.T) {
-			rBody := bytes.NewBufferString(tt.body)
+			body := bytes.NewBufferString(tt.body)
 
-			r := httptest.NewRequest(tt.method, tt.action, rBody)
+			req, err := http.NewRequest(tt.method, tt.action, body)
+			if err != nil {
+				panic(err)
+			}
 			w := httptest.NewRecorder()
 
-			hostParams.Set("localhost:8080")
-			destinationURL.Set("http://localhost:8080")
+			r.ServeHTTP(w, req)
 
-			shortLink(w, r)
-
-			// Код ответа
 			require.Equal(t, tt.want.statusCode, w.Code, "Код ответа не совпадает с ожидаемым")
-
-			// Проверяем ответ, если вернулся 201
-			body, err := io.ReadAll(w.Body)
-			require.NoError(t, err, "Не удалось получить ответ")
-
-			parsedURL, err := url.Parse(string(body))
-			require.NoError(t, err, "Не удалось прочитать ответ")
-
-			fmt.Println("Ответ сервера:", parsedURL)
 		})
 	}
 }
@@ -112,19 +112,15 @@ func Test_getFullLink(t *testing.T) {
 		},
 	}
 
+	r := router.InitRouter(&cfg)
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := chi.NewRouter()
-			r.Post("/", shortLink)
-			r.Get("/{id}", getFullLink)
-
-			Database = tt.database
-
 			req, err := http.NewRequest(tt.method, tt.action, nil)
-			w := httptest.NewRecorder()
 			if err != nil {
 				panic(err)
 			}
+			w := httptest.NewRecorder()
 
 			r.ServeHTTP(w, req)
 

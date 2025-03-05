@@ -1,15 +1,14 @@
-package main
+package parser
 
 import (
 	"errors"
-	"flag"
 	"fmt"
 	"net/url"
 	"strconv"
 	"strings"
 )
 
-type ServerHostParams struct {
+type Address struct {
 	Host string
 	Port int
 }
@@ -20,14 +19,11 @@ type BaseURL struct {
 	Port     string
 }
 
-var hostParams ServerHostParams
-var destinationURL BaseURL
-
-func (a ServerHostParams) String() string {
+func (a Address) String() string {
 	return a.Host + ":" + strconv.Itoa(a.Port)
 }
 
-func (a *ServerHostParams) Set(s string) error {
+func (a *Address) Set(s string) error {
 	hp := strings.Split(s, ":")
 	if len(hp) != 2 {
 		return errors.New("некорректный формат, ожидается host:port")
@@ -67,11 +63,4 @@ func (a *BaseURL) Set(value string) error {
 	}
 
 	return nil
-}
-
-func parseFlags() {
-	flag.Var(&hostParams, "a", "Net address host:port (например, localhost:8080)")
-	flag.Var(&destinationURL, "d", "Destination URL (например, http://example.com:8080)")
-
-	flag.Parse()
 }
