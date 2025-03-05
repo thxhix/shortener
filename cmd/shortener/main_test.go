@@ -8,14 +8,17 @@ import (
 	"os"
 	"testing"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/require"
 	"github.com/thxhix/shortener/internal/app/config"
 	"github.com/thxhix/shortener/internal/app/router"
 )
 
 var cfg config.Config
+var r *chi.Mux
 
 func TestMain(m *testing.M) {
+	r = router.InitRouter(&cfg)
 	cfg = *config.InitConfig()
 
 	os.Exit(m.Run())
@@ -56,8 +59,6 @@ func Test_shortLink(t *testing.T) {
 			body:   "https://ya.ru",
 		},
 	}
-
-	r := router.InitRouter(&cfg)
 
 	for _, tt := range tests {
 		t.Run(tt.method, func(t *testing.T) {
@@ -111,8 +112,6 @@ func Test_getFullLink(t *testing.T) {
 			database: map[string]string{"link1": "https://ya.ru"},
 		},
 	}
-
-	r := router.InitRouter(&cfg)
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
