@@ -7,8 +7,8 @@ import (
 	parser "github.com/thxhix/shortener/internal/app/flags"
 )
 
-const DEFAULT_ADDRESS = "localhost:8080"
-const DEFAULT_BASE_URL = "http://localhost:8080"
+const DefaulAddress = "localhost:8080"
+const DefaulBaseURL = "http://localhost:8080"
 
 type Config struct {
 	Address parser.Address
@@ -21,8 +21,8 @@ func InitConfig() *Config {
 		BaseURL: parser.BaseURL{},
 	}
 
-	cfg.Address.Set(DEFAULT_ADDRESS)
-	cfg.BaseURL.Set(DEFAULT_BASE_URL)
+	cfg.Address.Set(DefaulAddress)
+	cfg.BaseURL.Set(DefaulBaseURL)
 
 	cfg.ParseFlags()
 	cfg.LoadEnv()
