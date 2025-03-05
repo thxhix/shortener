@@ -11,16 +11,17 @@ const DefaulAddress = "localhost:8080"
 const DefaulBaseURL = "http://localhost:8080"
 
 type Config struct {
-	Address string
+	Address parser.Address
 	BaseURL parser.BaseURL
 }
 
 func InitConfig() *Config {
 	cfg := &Config{
-		Address: DefaulAddress,
+		Address: parser.Address{},
 		BaseURL: parser.BaseURL{},
 	}
 
+	cfg.Address.Set(DefaulAddress)
 	cfg.BaseURL.Set(DefaulBaseURL)
 
 	cfg.ParseFlags()
@@ -31,7 +32,7 @@ func InitConfig() *Config {
 
 func (c *Config) LoadEnv() {
 	if envAddr := os.Getenv("SERVER_ADDRESS"); envAddr != "" {
-		c.Address = envAddr
+		c.Address.Set(envAddr)
 	}
 	if envBase := os.Getenv("BASE_URL"); envBase != "" {
 		c.BaseURL.Set(envBase)
@@ -39,7 +40,7 @@ func (c *Config) LoadEnv() {
 }
 
 func (c *Config) ParseFlags() {
-	flag.StringVar(&c.Address, "a", c.Address, "Address (например, localhost:8080)")
+	flag.Var(&c.Address, "a", "Address (например, localhost:8080)")
 	flag.Var(&c.BaseURL, "b", "Base URL (например, http://example.com:8080)")
 
 	flag.Parse()
