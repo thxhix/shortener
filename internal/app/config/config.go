@@ -40,7 +40,7 @@ func (c *Config) LoadEnv() {
 
 func (c *Config) ParseFlags() {
 	flag.StringVar(&c.Address, "a", c.Address, "Address (например, localhost:8080)")
-	flag.Var(&c.BaseURL, "d", "Base URL (например, http://example.com:8080)")
+	flag.Var(&c.BaseURL, "b", "Base URL (например, http://example.com:8080)")
 
 	flag.Parse()
 }

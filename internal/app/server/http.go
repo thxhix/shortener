@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/thxhix/shortener/internal/app/config"
@@ -28,6 +29,6 @@ func StartPooling() {
 	fmt.Println("* * * * * * * * * * *")
 
 	if err := http.ListenAndServe(params.config.Address, router); err != nil {
-		panic(err)
+		log.Fatalf("Server failed: %v", err)
 	}
 }
