@@ -23,11 +23,11 @@ func StartPooling() {
 	router := router.InitRouter(&params.config)
 
 	fmt.Println("* * * Запускаюсь * * *")
-	fmt.Println("Адрес: " + params.config.Address.String())
+	fmt.Println("Адрес: " + params.config.Address)
 	fmt.Println("Base URL: " + params.config.BaseURL.String())
 	fmt.Println("* * * * * * * * * * *")
 
-	if err := http.ListenAndServe(params.config.Address.String(), router); err != nil {
+	if err := http.ListenAndServe(params.config.Address, router); err != nil {
 		panic(err)
 	}
 }
