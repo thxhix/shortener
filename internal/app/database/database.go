@@ -26,5 +26,5 @@ func (db *Database) GetRow(link string) (string, error) {
 	if ok {
 		return value, nil
 	}
-	return value, errors.New("Нет такой записи в БД")
+	return value, errors.New("нет такой записи в БД")
 }
