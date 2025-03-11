@@ -1,24 +1,24 @@
 package handlers
 
 import (
+	"github.com/thxhix/shortener/internal/app/usecase"
 	"io"
 	"net/http"
 	"net/url"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/thxhix/shortener/internal/app/config"
-	"github.com/thxhix/shortener/internal/app/database"
 )
 
-var DB = database.CreateDatabase()
-
 type Handler struct {
-	config config.Config
+	config     config.Config
+	URLUsecase *usecase.URLUseCase
 }
 
 func InitHandler(cfg *config.Config) *Handler {
 	return &Handler{
-		config: *cfg,
+		config:     *cfg,
+		URLUsecase: usecase.GetInstance(),
 	}
 }
 
@@ -34,18 +34,26 @@ func (h *Handler) StoreLink(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	index := DB.AddRow("link", parsedURL.String())
+	link, err := h.URLUsecase.Shorten(parsedURL.String())
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 
 	w.WriteHeader(http.StatusCreated)
 	w.Header().Set("Content-Type", "text/plain")
 
-	io.WriteString(w, h.config.BaseURL.String()+"/"+index)
+	_, err = io.WriteString(w, h.config.BaseURL.String()+"/"+link)
+	if err != nil {
+		http.Error(w, "не удалось записать ответ", http.StatusBadRequest)
+		return
+	}
 }
 
 func (h *Handler) Redirect(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
-	link, err := DB.GetRow(id)
+	link, err := h.URLUsecase.GetFullURL(id)
 	if err != nil {
 		http.Error(w, "такой страницы нет", http.StatusBadRequest)
 		return

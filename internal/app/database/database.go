@@ -2,7 +2,6 @@ package database
 
 import (
 	"errors"
-	"strconv"
 )
 
 type Database struct {
@@ -15,14 +14,16 @@ func CreateDatabase() *Database {
 	}
 }
 
-func (db *Database) AddRow(prefix string, link string) string {
-	index := prefix + strconv.Itoa(len(db.storage)+1)
-	db.storage[index] = link
-	return index
+func (db *Database) AddLink(original string, shorten string) (string, error) {
+	if _, err := db.GetFullLink(shorten); err == nil {
+		return "", errors.New("такая запись в БД уже есть")
+	}
+	db.storage[shorten] = original
+	return shorten, nil
 }
 
-func (db *Database) GetRow(link string) (string, error) {
-	value, ok := db.storage[link]
+func (db *Database) GetFullLink(hash string) (string, error) {
+	value, ok := db.storage[hash]
 	if ok {
 		return value, nil
 	}

@@ -84,11 +84,10 @@ func Test_getFullLink(t *testing.T) {
 		header      string
 	}
 	tests := []struct {
-		name     string
-		want     want
-		action   string
-		method   string
-		database map[string]string
+		name   string
+		want   want
+		action string
+		method string
 	}{
 		{
 			name: "No redirect request",
@@ -96,9 +95,8 @@ func Test_getFullLink(t *testing.T) {
 				contentType: "text/plain",
 				statusCode:  400,
 			},
-			action:   "/no-redirect",
-			method:   http.MethodGet,
-			database: map[string]string{},
+			action: "/no-redirect",
+			method: http.MethodGet,
 		},
 		{
 			name: "Has redirect request",
@@ -107,9 +105,8 @@ func Test_getFullLink(t *testing.T) {
 				statusCode:  http.StatusTemporaryRedirect,
 				header:      "https://ya.ru",
 			},
-			action:   "/link1",
-			method:   http.MethodGet,
-			database: map[string]string{"link1": "https://ya.ru"},
+			action: "/testHash",
+			method: http.MethodGet,
 		},
 	}
 
