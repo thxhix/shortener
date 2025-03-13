@@ -2,33 +2,37 @@ package server
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/thxhix/shortener/internal/app/config"
-	"github.com/thxhix/shortener/internal/app/router"
+	r "github.com/thxhix/shortener/internal/app/router"
 )
+
+type ServerInterface interface {
+	StartPooling() error
+}
 
 type Server struct {
 	config config.Config
 }
 
-func initServer() *Server {
+func NewServer() ServerInterface {
 	return &Server{
-		config: *config.InitConfig(),
+		config: *config.NewConfig(),
 	}
 }
 
-func StartPooling() {
-	params := initServer()
-	router := router.InitRouter(&params.config)
+func (s *Server) StartPooling() error {
+	router := r.NewRouter(&s.config)
 
 	fmt.Println("* * * Запускаюсь * * *")
-	fmt.Println("Адрес: " + params.config.Address.String())
-	fmt.Println("Base URL: " + params.config.BaseURL.String())
+	fmt.Println("Адрес: " + s.config.Address.String())
+	fmt.Println("Base URL: " + s.config.BaseURL.String())
 	fmt.Println("* * * * * * * * * * *")
 
-	if err := http.ListenAndServe(params.config.Address.String(), router); err != nil {
-		log.Fatalf("Server failed: %v", err)
+	if err := http.ListenAndServe(s.config.Address.String(), router); err != nil {
+		return err
 	}
+
+	return nil
 }

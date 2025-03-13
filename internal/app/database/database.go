@@ -4,11 +4,16 @@ import (
 	"errors"
 )
 
+type DatabaseInterface interface {
+	AddLink(original string, shorten string) (string, error)
+	GetFullLink(hash string) (string, error)
+}
+
 type Database struct {
 	storage map[string]string
 }
 
-func CreateDatabase() *Database {
+func NewDatabase() DatabaseInterface {
 	return &Database{
 		storage: make(map[string]string),
 	}

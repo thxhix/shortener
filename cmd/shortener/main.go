@@ -1,9 +1,13 @@
 package main
 
 import (
-	"github.com/thxhix/shortener/internal/app/server"
+	http "github.com/thxhix/shortener/internal/app/server"
 )
 
 func main() {
-	server.StartPooling()
+	server := http.NewServer()
+	err := server.StartPooling()
+	if err != nil {
+		panic(err)
+	}
 }

@@ -18,8 +18,8 @@ var cfg config.Config
 var r *chi.Mux
 
 func TestMain(m *testing.M) {
-	r = router.InitRouter(&cfg)
-	cfg = *config.InitConfig()
+	r = router.NewRouter(&cfg)
+	cfg = *config.NewConfig()
 
 	os.Exit(m.Run())
 }

@@ -15,7 +15,7 @@ type Config struct {
 	BaseURL parser.BaseURL
 }
 
-func InitConfig() *Config {
+func NewConfig() *Config {
 	cfg := &Config{
 		Address: parser.Address{},
 		BaseURL: parser.BaseURL{},

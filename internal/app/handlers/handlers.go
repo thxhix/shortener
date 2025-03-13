@@ -12,13 +12,13 @@ import (
 
 type Handler struct {
 	config     config.Config
-	URLUsecase *usecase.URLUseCase
+	URLUsecase usecase.URLUseCaseInterface
 }
 
-func InitHandler(cfg *config.Config) *Handler {
+func NewHandler(cfg *config.Config, useCase usecase.URLUseCaseInterface) *Handler {
 	return &Handler{
 		config:     *cfg,
-		URLUsecase: usecase.GetInstance(),
+		URLUsecase: useCase,
 	}
 }
 

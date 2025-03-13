@@ -4,12 +4,17 @@ import (
 	"github.com/thxhix/shortener/internal/app/database"
 )
 
-type URLUseCase struct {
-	database database.Database
+type URLUseCaseInterface interface {
+	Shorten(url string) (string, error)
+	GetFullURL(url string) (string, error)
 }
 
-func GetInstance() *URLUseCase {
-	return &URLUseCase{database: *database.CreateDatabase()}
+type URLUseCase struct {
+	database database.DatabaseInterface
+}
+
+func NewURLUseCase(db database.DatabaseInterface) *URLUseCase {
+	return &URLUseCase{database: db}
 }
 
 func (u *URLUseCase) Shorten(originalURL string) (string, error) {
@@ -18,7 +23,6 @@ func (u *URLUseCase) Shorten(originalURL string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
 	return shorten, nil
 }
 
