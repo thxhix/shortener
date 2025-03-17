@@ -5,19 +5,26 @@ import (
 	"github.com/thxhix/shortener/internal/app/config"
 	"github.com/thxhix/shortener/internal/app/database"
 	handle "github.com/thxhix/shortener/internal/app/handlers"
+	"github.com/thxhix/shortener/internal/app/middleware"
 	"github.com/thxhix/shortener/internal/app/usecase"
+	"go.uber.org/zap"
 )
 
 func NewRouter(cfg *config.Config) *chi.Mux {
 	db := database.NewDatabase()
 	uc := usecase.NewURLUseCase(db)
 
+	logger := zap.NewExample()
+	defer logger.Sync()
+
 	router := chi.NewRouter()
 	handlers := handle.NewHandler(cfg, uc)
 
 	router.Route("/", func(r chi.Router) {
-		router.Post("/", handlers.StoreLink)
-		router.Get("/{id}", handlers.Redirect)
+		// Кидаем на группу мидлвару с логами
+		r.Use(middleware.WithLogging(logger.Sugar()))
+		r.Post("/", handlers.StoreLink)
+		r.Get("/{id}", handlers.Redirect)
 	})
 
 	return router
