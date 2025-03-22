@@ -23,8 +23,13 @@ func NewRouter(cfg *config.Config) *chi.Mux {
 	router.Route("/", func(r chi.Router) {
 		// Кидаем на группу мидлвару с логами
 		r.Use(middleware.WithLogging(logger.Sugar()))
+
 		r.Post("/", handlers.StoreLink)
 		r.Get("/{id}", handlers.Redirect)
+
+		r.Route("/api", func(r chi.Router) {
+			r.Post("/shorten", handlers.ApiStoreLink)
+		})
 	})
 
 	return router

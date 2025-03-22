@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/go-chi/chi/v5"
@@ -18,10 +19,15 @@ var cfg config.Config
 var r *chi.Mux
 
 func TestMain(m *testing.M) {
-	r = router.NewRouter(&cfg)
 	cfg = *config.NewConfig()
+	r = router.NewRouter(&cfg)
 
 	os.Exit(m.Run())
+}
+
+// скидываем storage базы
+func clearIter() {
+	r = router.NewRouter(&cfg)
 }
 
 func Test_shortLink(t *testing.T) {
@@ -122,6 +128,53 @@ func Test_getFullLink(t *testing.T) {
 
 			require.Equal(t, tt.want.statusCode, w.Code, "Код ответа не совпадает с ожидаемым")
 			require.Equal(t, tt.want.header, w.Header().Get("Location"), "Header Location не совпадает с ожидаемым")
+		})
+	}
+}
+
+func Test_ApiStoreLink(t *testing.T) {
+	clearIter()
+
+	type want struct {
+		contentType  string
+		statusCode   int
+		jsonResponse string
+	}
+
+	tests := []struct {
+		name        string
+		action      string
+		method      string
+		body        string
+		contentType string
+		want        want
+	}{
+		{
+			name:        "API store link request",
+			action:      "/api/shorten",
+			method:      http.MethodPost,
+			body:        "{\"url\": \"https://test.ru\"}",
+			contentType: "application/json",
+
+			want: want{
+				contentType:  "text/plain",
+				statusCode:   http.StatusCreated,
+				jsonResponse: "https://ya.ru",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req, err := http.NewRequest(tt.method, tt.action, strings.NewReader(tt.body))
+			if err != nil {
+				panic(err)
+			}
+			w := httptest.NewRecorder()
+
+			r.ServeHTTP(w, req)
+
+			require.Equal(t, tt.want.statusCode, w.Code, "Код ответа не совпадает с ожидаемым")
 		})
 	}
 }

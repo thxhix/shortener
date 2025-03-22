@@ -51,7 +51,7 @@ func WithLogging(logger *zap.SugaredLogger) func(http.Handler) http.Handler {
 			duration := time.Since(start)
 
 			logger.Infoln(
-				"uri", r.RequestURI,
+				"uri", r.URL.String(),
 				"method", r.Method,
 				"status", responseData.status, // http_code
 				"duration", duration,
