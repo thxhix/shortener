@@ -66,7 +66,7 @@ func (h *Handler) Redirect(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusTemporaryRedirect)
 }
 
-func (h *Handler) ApiStoreLink(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) APIStoreLink(w http.ResponseWriter, r *http.Request) {
 	json, err := io.ReadAll(r.Body)
 	defer r.Body.Close()
 	if err != nil {
@@ -95,7 +95,7 @@ func (h *Handler) ApiStoreLink(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	w.Header().Set("Content-Type", "text/plain")
+	w.Header().Set("Content-Type", "application/json")
 
 	_, err = io.WriteString(w, string(result))
 	if err != nil {

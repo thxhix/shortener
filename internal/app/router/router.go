@@ -28,7 +28,7 @@ func NewRouter(cfg *config.Config) *chi.Mux {
 		r.Get("/{id}", handlers.Redirect)
 
 		r.Route("/api", func(r chi.Router) {
-			r.Post("/shorten", handlers.ApiStoreLink)
+			r.Post("/shorten", handlers.APIStoreLink)
 		})
 	})
 

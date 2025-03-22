@@ -132,7 +132,7 @@ func Test_getFullLink(t *testing.T) {
 	}
 }
 
-func Test_ApiStoreLink(t *testing.T) {
+func Test_APIStoreLink(t *testing.T) {
 	clearIter()
 
 	type want struct {
@@ -157,7 +157,7 @@ func Test_ApiStoreLink(t *testing.T) {
 			contentType: "application/json",
 
 			want: want{
-				contentType:  "text/plain",
+				contentType:  "application/json",
 				statusCode:   http.StatusCreated,
 				jsonResponse: "https://ya.ru",
 			},
@@ -175,6 +175,7 @@ func Test_ApiStoreLink(t *testing.T) {
 			r.ServeHTTP(w, req)
 
 			require.Equal(t, tt.want.statusCode, w.Code, "Код ответа не совпадает с ожидаемым")
+			require.Equal(t, tt.want.contentType, w.Header().Get("Content-Type"), "Content-Type ответа не совпадает с ожидаемым")
 		})
 	}
 }
