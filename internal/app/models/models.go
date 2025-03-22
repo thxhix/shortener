@@ -7,5 +7,5 @@ type FullURL struct {
 
 //easyjson:json
 type ShortURL struct {
-	URL string `json:"url"`
+	Result string `json:"result"`
 }

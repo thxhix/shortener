@@ -36,8 +36,8 @@ func easyjsonD2b7633eDecodeGithubComThxhixShortenerInternalAppModels(in *jlexer.
 			continue
 		}
 		switch key {
-		case "url":
-			out.URL = string(in.String())
+		case "result":
+			out.Result = string(in.String())
 		default:
 			in.SkipRecursive()
 		}
@@ -53,9 +53,9 @@ func easyjsonD2b7633eEncodeGithubComThxhixShortenerInternalAppModels(out *jwrite
 	first := true
 	_ = first
 	{
-		const prefix string = ",\"url\":"
+		const prefix string = ",\"result\":"
 		out.RawString(prefix[1:])
-		out.String(string(in.URL))
+		out.String(string(in.Result))
 	}
 	out.RawByte('}')
 }

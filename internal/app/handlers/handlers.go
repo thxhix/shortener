@@ -87,7 +87,9 @@ func (h *Handler) APIStoreLink(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	shortURL := models.ShortURL{URL: link}
+	link = h.config.BaseURL.String() + "/" + link
+
+	shortURL := models.ShortURL{Result: link}
 	result, err := easyjson.Marshal(shortURL)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -99,7 +101,7 @@ func (h *Handler) APIStoreLink(w http.ResponseWriter, r *http.Request) {
 
 	_, err = io.WriteString(w, string(result))
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, "не удалось записать ответ", http.StatusBadRequest)
 		return
 	}
 }
