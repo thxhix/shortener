@@ -43,8 +43,8 @@ func (h *Handler) StoreLink(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusCreated)
 	w.Header().Set("Content-Type", "text/plain")
+	w.WriteHeader(http.StatusCreated)
 
 	_, err = io.WriteString(w, h.config.BaseURL.String()+"/"+link)
 	if err != nil {
@@ -96,10 +96,10 @@ func (h *Handler) APIStoreLink(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusCreated)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
 
-	_, err = io.WriteString(w, string(result))
+	_, err = w.Write(result)
 	if err != nil {
 		http.Error(w, "не удалось записать ответ", http.StatusBadRequest)
 		return
