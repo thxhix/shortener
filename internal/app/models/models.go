@@ -1,5 +1,7 @@
 package models
 
+//go:generate easyjson -all models.go
+
 //easyjson:json
 type FullURL struct {
 	URL string `json:"url"`
