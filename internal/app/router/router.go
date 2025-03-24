@@ -23,6 +23,7 @@ func NewRouter(cfg *config.Config) *chi.Mux {
 	router.Route("/", func(r chi.Router) {
 		// Кидаем на группу мидлвару с логами
 		r.Use(middleware.WithLogging(logger.Sugar()))
+		r.Use(middleware.CompressorMiddleware)
 
 		r.Post("/", handlers.StoreLink)
 		r.Get("/{id}", handlers.Redirect)
