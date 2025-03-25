@@ -19,7 +19,7 @@ type Database struct {
 }
 
 type LinkRow struct {
-	Uuid int    `json:"uuid"`
+	UUID int    `json:"uuid"`
 	Hash string `json:"hash"`
 	URL  string `json:"url"`
 }
@@ -36,25 +36,25 @@ func NewDatabase(filePath string) (DatabaseInterface, error) {
 	}, nil
 }
 
-func (p *Database) Close() error {
-	return p.file.Close()
+func (db *Database) Close() error {
+	return db.file.Close()
 }
 
-func (p *Database) WriteRow(row *LinkRow) error {
-	err := p.encoder.Encode(row)
+func (db *Database) WriteRow(row *LinkRow) error {
+	err := db.encoder.Encode(row)
 	if err != nil {
 		return err
 	}
-	return p.file.Sync()
+	return db.file.Sync()
 }
 
-func (p *Database) FindByHash(hash string) (*LinkRow, error) {
-	_, err := p.file.Seek(0, 0)
+func (db *Database) FindByHash(hash string) (*LinkRow, error) {
+	_, err := db.file.Seek(0, 0)
 	if err != nil {
 		return nil, err
 	}
 
-	scanner := bufio.NewScanner(p.file)
+	scanner := bufio.NewScanner(db.file)
 	for scanner.Scan() {
 		var row LinkRow
 		err := json.Unmarshal(scanner.Bytes(), &row)
@@ -86,7 +86,7 @@ func (db *Database) getLastUUID() (int, error) {
 		var row LinkRow
 		err := json.Unmarshal(scanner.Bytes(), &row)
 		if err == nil {
-			lastUUID = row.Uuid
+			lastUUID = row.UUID
 		}
 	}
 
@@ -106,7 +106,7 @@ func (db *Database) AddLink(original string, shorten string) (string, error) {
 	newID := lastID + 1
 
 	err = db.WriteRow(&LinkRow{
-		Uuid: newID,
+		UUID: newID,
 		Hash: shorten,
 		URL:  original,
 	})
