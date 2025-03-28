@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"github.com/thxhix/shortener/internal/app/database"
 	"net/http"
 
 	"github.com/thxhix/shortener/internal/app/config"
@@ -23,7 +24,12 @@ func NewServer() ServerInterface {
 }
 
 func (s *Server) StartPooling() error {
-	router := r.NewRouter(&s.config)
+	db, err := database.NewDatabase(s.config.DBFileName)
+	if err != nil {
+		panic(err)
+	}
+
+	router := r.NewRouter(&s.config, db)
 
 	fmt.Println("* * * Запускаюсь * * *")
 	fmt.Println("Адрес: " + s.config.Address.String())

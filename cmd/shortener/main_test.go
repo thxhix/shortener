@@ -3,6 +3,7 @@ package main
 
 import (
 	"bytes"
+	"github.com/thxhix/shortener/internal/app/database"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -20,14 +21,13 @@ var r *chi.Mux
 
 func TestMain(m *testing.M) {
 	cfg = *config.NewConfig()
-	r = router.NewRouter(&cfg)
+	db, err := database.NewDatabase(cfg.DBFileName)
+	if err != nil {
+		panic(err)
+	}
+	r = router.NewRouter(&cfg, db)
 
 	os.Exit(m.Run())
-}
-
-// скидываем storage базы
-func clearIter() {
-	r = router.NewRouter(&cfg)
 }
 
 func Test_shortLink(t *testing.T) {
@@ -133,8 +133,6 @@ func Test_getFullLink(t *testing.T) {
 }
 
 func Test_APIStoreLink(t *testing.T) {
-	clearIter()
-
 	type want struct {
 		contentType  string
 		statusCode   int

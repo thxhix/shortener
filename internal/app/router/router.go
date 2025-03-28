@@ -10,11 +10,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func NewRouter(cfg *config.Config) *chi.Mux {
-	db, err := database.NewDatabase(cfg.DBFileName)
-	if err != nil {
-		panic(err)
-	}
+func NewRouter(cfg *config.Config, db database.Database) *chi.Mux {
 	uc := usecase.NewURLUseCase(db)
 
 	logger := zap.NewExample()

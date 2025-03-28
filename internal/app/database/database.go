@@ -7,13 +7,13 @@ import (
 	"os"
 )
 
-type DatabaseInterface interface {
+type Database interface {
 	AddLink(original string, shorten string) (string, error)
 	GetFullLink(hash string) (string, error)
 	Close() error
 }
 
-type Database struct {
+type FileDatabase struct {
 	file    *os.File
 	encoder *json.Encoder
 }
@@ -24,23 +24,23 @@ type LinkRow struct {
 	URL  string `json:"url"`
 }
 
-func NewDatabase(filePath string) (DatabaseInterface, error) {
+func NewDatabase(filePath string) (Database, error) {
 	file, err := os.OpenFile(filePath, os.O_RDWR|os.O_CREATE, 0666)
 	if err != nil {
 		return nil, err
 	}
 
-	return &Database{
+	return &FileDatabase{
 		file:    file,
 		encoder: json.NewEncoder(file),
 	}, nil
 }
 
-func (db *Database) Close() error {
+func (db *FileDatabase) Close() error {
 	return db.file.Close()
 }
 
-func (db *Database) WriteRow(row *LinkRow) error {
+func (db *FileDatabase) WriteRow(row *LinkRow) error {
 	err := db.encoder.Encode(row)
 	if err != nil {
 		return err
@@ -48,7 +48,7 @@ func (db *Database) WriteRow(row *LinkRow) error {
 	return db.file.Sync()
 }
 
-func (db *Database) FindByHash(hash string) (*LinkRow, error) {
+func (db *FileDatabase) FindByHash(hash string) (*LinkRow, error) {
 	_, err := db.file.Seek(0, 0)
 	if err != nil {
 		return nil, err
@@ -73,7 +73,7 @@ func (db *Database) FindByHash(hash string) (*LinkRow, error) {
 	return nil, errors.New("запись не найдена")
 }
 
-func (db *Database) getLastUUID() (int, error) {
+func (db *FileDatabase) getLastUUID() (int, error) {
 	_, err := db.file.Seek(0, 0)
 	if err != nil {
 		return 0, err
@@ -97,7 +97,7 @@ func (db *Database) getLastUUID() (int, error) {
 	return lastUUID, nil
 }
 
-func (db *Database) AddLink(original string, shorten string) (string, error) {
+func (db *FileDatabase) AddLink(original string, shorten string) (string, error) {
 	lastID, err := db.getLastUUID()
 	if err != nil {
 		return "", err
@@ -116,7 +116,7 @@ func (db *Database) AddLink(original string, shorten string) (string, error) {
 	return shorten, nil
 }
 
-func (db *Database) GetFullLink(hash string) (string, error) {
+func (db *FileDatabase) GetFullLink(hash string) (string, error) {
 	byHash, err := db.FindByHash(hash)
 	if err != nil {
 		return "", err
