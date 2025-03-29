@@ -10,10 +10,10 @@ type URLUseCaseInterface interface {
 }
 
 type URLUseCase struct {
-	database database.DatabaseInterface
+	database database.Database
 }
 
-func NewURLUseCase(db database.DatabaseInterface) *URLUseCase {
+func NewURLUseCase(db database.Database) *URLUseCase {
 	return &URLUseCase{database: db}
 }
 

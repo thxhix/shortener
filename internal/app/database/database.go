@@ -1,36 +1,125 @@
 package database
 
 import (
+	"bufio"
+	"encoding/json"
 	"errors"
+	"os"
 )
 
-type DatabaseInterface interface {
+type Database interface {
 	AddLink(original string, shorten string) (string, error)
 	GetFullLink(hash string) (string, error)
+	Close() error
 }
 
-type Database struct {
-	storage map[string]string
+type FileDatabase struct {
+	file    *os.File
+	encoder *json.Encoder
 }
 
-func NewDatabase() DatabaseInterface {
-	return &Database{
-		storage: make(map[string]string),
+type LinkRow struct {
+	UUID int    `json:"uuid"`
+	Hash string `json:"hash"`
+	URL  string `json:"url"`
+}
+
+func NewDatabase(filePath string) (Database, error) {
+	file, err := os.OpenFile(filePath, os.O_RDWR|os.O_CREATE, 0666)
+	if err != nil {
+		return nil, err
 	}
+
+	return &FileDatabase{
+		file:    file,
+		encoder: json.NewEncoder(file),
+	}, nil
 }
 
-func (db *Database) AddLink(original string, shorten string) (string, error) {
-	if _, err := db.GetFullLink(shorten); err == nil {
-		return "", errors.New("такая запись в БД уже есть")
+func (db *FileDatabase) Close() error {
+	return db.file.Close()
+}
+
+func (db *FileDatabase) WriteRow(row *LinkRow) error {
+	err := db.encoder.Encode(row)
+	if err != nil {
+		return err
 	}
-	db.storage[shorten] = original
+	return db.file.Sync()
+}
+
+func (db *FileDatabase) FindByHash(hash string) (*LinkRow, error) {
+	_, err := db.file.Seek(0, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	scanner := bufio.NewScanner(db.file)
+	for scanner.Scan() {
+		var row LinkRow
+		err := json.Unmarshal(scanner.Bytes(), &row)
+		if err != nil {
+			continue
+		}
+
+		if row.Hash == hash {
+			return &row, nil
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return nil, err
+	}
+	return nil, errors.New("запись не найдена")
+}
+
+func (db *FileDatabase) getLastUUID() (int, error) {
+	_, err := db.file.Seek(0, 0)
+	if err != nil {
+		return 0, err
+	}
+
+	scanner := bufio.NewScanner(db.file)
+	var lastUUID int
+
+	for scanner.Scan() {
+		var row LinkRow
+		err := json.Unmarshal(scanner.Bytes(), &row)
+		if err == nil {
+			lastUUID = row.UUID
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return 0, err
+	}
+
+	return lastUUID, nil
+}
+
+func (db *FileDatabase) AddLink(original string, shorten string) (string, error) {
+	lastID, err := db.getLastUUID()
+	if err != nil {
+		return "", err
+	}
+
+	newID := lastID + 1
+
+	err = db.WriteRow(&LinkRow{
+		UUID: newID,
+		Hash: shorten,
+		URL:  original,
+	})
+	if err != nil {
+		return "", err
+	}
 	return shorten, nil
 }
 
-func (db *Database) GetFullLink(hash string) (string, error) {
-	value, ok := db.storage[hash]
-	if ok {
-		return value, nil
+func (db *FileDatabase) GetFullLink(hash string) (string, error) {
+	byHash, err := db.FindByHash(hash)
+	if err != nil {
+		return "", err
 	}
-	return value, errors.New("нет такой записи в БД")
+	return byHash.URL, nil
 }
