@@ -67,6 +67,7 @@ func (h *Handler) Redirect(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusTemporaryRedirect)
 }
 
+// * Было замечание насчет названия метода, но в итоге не придумал ничего лучше. Кажется итак сойдет..
 func (h *Handler) APIStoreLink(w http.ResponseWriter, r *http.Request) {
 	json, err := io.ReadAll(r.Body)
 	defer r.Body.Close()
