@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"github.com/thxhix/shortener/internal/app/database"
 	"github.com/thxhix/shortener/internal/app/models"
 	"github.com/thxhix/shortener/internal/app/usecase"
 	"io"
@@ -104,4 +105,18 @@ func (h *Handler) APIStoreLink(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "не удалось записать ответ", http.StatusBadRequest)
 		return
 	}
+}
+
+func (h *Handler) PingDatabase(w http.ResponseWriter, r *http.Request) {
+	// TODO : Убрать когда переедем на SQL хранилища
+	tempDB, err := database.NewPQLDatabase(h.config.PostgresQL)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+	err = h.URLUsecase.PingConnection(tempDB)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
 }

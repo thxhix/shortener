@@ -21,7 +21,7 @@ var r *chi.Mux
 
 func TestMain(m *testing.M) {
 	cfg = *config.NewConfig()
-	db, err := database.NewDatabase(cfg.DBFileName)
+	db, err := database.NewFileDatabase(cfg.DBFileName)
 	if err != nil {
 		panic(err)
 	}

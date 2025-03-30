@@ -2,15 +2,21 @@ package database
 
 import (
 	"bufio"
+	"context"
+	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
+	_ "github.com/jackc/pgx/v5/stdlib"
 	"os"
+	"time"
 )
 
 type Database interface {
 	AddLink(original string, shorten string) (string, error)
 	GetFullLink(hash string) (string, error)
 	Close() error
+	PingConnection() error
 }
 
 type FileDatabase struct {
@@ -24,7 +30,7 @@ type LinkRow struct {
 	URL  string `json:"url"`
 }
 
-func NewDatabase(filePath string) (Database, error) {
+func NewFileDatabase(filePath string) (Database, error) {
 	file, err := os.OpenFile(filePath, os.O_RDWR|os.O_CREATE, 0666)
 	if err != nil {
 		return nil, err
@@ -122,4 +128,43 @@ func (db *FileDatabase) GetFullLink(hash string) (string, error) {
 		return "", err
 	}
 	return byHash.URL, nil
+}
+
+func (p *FileDatabase) PingConnection() error {
+	return nil
+}
+
+type PostgresQLDatabase struct {
+	driver *sql.DB
+}
+
+func (p *PostgresQLDatabase) AddLink(original string, shorten string) (string, error) {
+	//TODO implement me
+	panic("i can't do anything now..")
+}
+
+func (p *PostgresQLDatabase) GetFullLink(hash string) (string, error) {
+	//TODO implement me
+	panic("i can't do anything now..")
+}
+
+func (p *PostgresQLDatabase) Close() error {
+	return p.driver.Close()
+}
+
+func (p *PostgresQLDatabase) PingConnection() error {
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	defer cancel()
+	return p.driver.PingContext(ctx)
+}
+
+func NewPQLDatabase(params string) (Database, error) {
+	fmt.Println(params)
+	db, err := sql.Open("pgx", params)
+	if err != nil {
+		return nil, err
+	}
+	return &PostgresQLDatabase{
+		driver: db,
+	}, nil
 }

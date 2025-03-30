@@ -24,7 +24,7 @@ func NewServer() ServerInterface {
 }
 
 func (s *Server) StartPooling() error {
-	db, err := database.NewDatabase(s.config.DBFileName)
+	db, err := database.NewFileDatabase(s.config.DBFileName)
 	if err != nil {
 		panic(err)
 	}

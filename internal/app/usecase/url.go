@@ -7,6 +7,7 @@ import (
 type URLUseCaseInterface interface {
 	Shorten(url string) (string, error)
 	GetFullURL(url string) (string, error)
+	PingConnection(tempDB database.Database) error // TODO : Убрать tempDB когда переедем на SQL хранилища
 }
 
 type URLUseCase struct {
@@ -32,4 +33,9 @@ func (u *URLUseCase) GetFullURL(hash string) (string, error) {
 		return "", err
 	}
 	return link, nil
+}
+
+// TODO : Убрать tempDB когда переедем на SQL хранилища
+func (u *URLUseCase) PingConnection(tempDB database.Database) error {
+	return tempDB.PingConnection()
 }
