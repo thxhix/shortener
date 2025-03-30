@@ -2,7 +2,6 @@ package config
 
 import (
 	"flag"
-	"fmt"
 	"os"
 
 	parser "github.com/thxhix/shortener/internal/app/flags"
@@ -11,7 +10,7 @@ import (
 const DefaultAddress = "localhost:8080"
 const DefaultBaseURL = "http://localhost:8080"
 const DefaultDBFileName = "./db.json"
-const DefaultPostgresQL = "postgres://postgres:129755@localhost:5432/yp_go"
+const DefaultPostgresQL = "user=postgres password=129755 dbname=yp_go sslmode=disable" // TODO : Это для себя сделал, пока пусть будет
 
 type Config struct {
 	Address    parser.Address
@@ -34,8 +33,6 @@ func NewConfig() *Config {
 	cfg.ParseFlags()
 	cfg.LoadEnv()
 
-	fmt.Println(cfg.PostgresQL)
-
 	return cfg
 }
 
@@ -49,7 +46,7 @@ func (c *Config) LoadEnv() {
 	if envFile := os.Getenv("FILE_STORAGE_PATH"); envFile != "" {
 		c.DBFileName = envFile
 	}
-	if envFile := os.Getenv("DATABASE_DSN"); envFile != "" {
+	if envFile := os.Getenv("DATABASE_DSN"); envFile != "" && c.PostgresQL == "" {
 		c.PostgresQL = envFile
 	}
 }
@@ -64,5 +61,7 @@ func (c *Config) ParseFlags() {
 	flag.Parse()
 
 	c.DBFileName = *dbFileName
-	c.PostgresQL = *postgresDSN
+	if c.PostgresQL == "" {
+		c.PostgresQL = *postgresDSN
+	}
 }

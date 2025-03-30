@@ -6,8 +6,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
-	"fmt"
-	_ "github.com/jackc/pgx/v5/stdlib"
+	_ "github.com/lib/pq"
 	"os"
 	"time"
 )
@@ -159,8 +158,7 @@ func (p *PostgresQLDatabase) PingConnection() error {
 }
 
 func NewPQLDatabase(params string) (Database, error) {
-	fmt.Println(params)
-	db, err := sql.Open("pgx", params)
+	db, err := sql.Open("postgres", params)
 	if err != nil {
 		return nil, err
 	}
