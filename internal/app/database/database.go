@@ -129,7 +129,7 @@ func (db *FileDatabase) GetFullLink(hash string) (string, error) {
 	return byHash.URL, nil
 }
 
-func (p *FileDatabase) PingConnection() error {
+func (db *FileDatabase) PingConnection() error {
 	return nil
 }
 
@@ -137,24 +137,24 @@ type PostgresQLDatabase struct {
 	driver *sql.DB
 }
 
-func (p *PostgresQLDatabase) AddLink(original string, shorten string) (string, error) {
+func (db *PostgresQLDatabase) AddLink(original string, shorten string) (string, error) {
 	//TODO implement me
 	panic("i can't do anything now..")
 }
 
-func (p *PostgresQLDatabase) GetFullLink(hash string) (string, error) {
+func (db *PostgresQLDatabase) GetFullLink(hash string) (string, error) {
 	//TODO implement me
 	panic("i can't do anything now..")
 }
 
-func (p *PostgresQLDatabase) Close() error {
-	return p.driver.Close()
+func (db *PostgresQLDatabase) Close() error {
+	return db.driver.Close()
 }
 
-func (p *PostgresQLDatabase) PingConnection() error {
+func (db *PostgresQLDatabase) PingConnection() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
-	return p.driver.PingContext(ctx)
+	return db.driver.PingContext(ctx)
 }
 
 func NewPQLDatabase(params string) (Database, error) {
