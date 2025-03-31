@@ -3,7 +3,7 @@ package main
 
 import (
 	"bytes"
-	"github.com/thxhix/shortener/internal/app/database"
+	"github.com/thxhix/shortener/internal/app/database/Drivers"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -21,7 +21,7 @@ var r *chi.Mux
 
 func TestMain(m *testing.M) {
 	cfg = *config.NewConfig()
-	db, err := database.NewFileDatabase(cfg.DBFileName)
+	db, err := Drivers.NewFileDatabase(cfg.DBFileName)
 	if err != nil {
 		panic(err)
 	}

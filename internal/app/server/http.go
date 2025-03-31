@@ -2,7 +2,7 @@ package server
 
 import (
 	"fmt"
-	"github.com/thxhix/shortener/internal/app/database"
+	"github.com/thxhix/shortener/internal/app/database/Drivers"
 	"net/http"
 
 	"github.com/thxhix/shortener/internal/app/config"
@@ -24,7 +24,7 @@ func NewServer() ServerInterface {
 }
 
 func (s *Server) StartPooling() error {
-	db, err := database.NewFileDatabase(s.config.DBFileName)
+	db, err := Drivers.NewFileDatabase(s.config.DBFileName)
 	if err != nil {
 		panic(err)
 	}
