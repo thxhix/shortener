@@ -21,7 +21,6 @@ var r *chi.Mux
 
 func TestMain(m *testing.M) {
 	cfg = *config.NewConfig()
-	cfg.PostgresQL = "user=postgres password=129755 dbname=yp_go sslmode=disable"
 	db, err := database.NewDatabase(&cfg)
 	if err != nil {
 		panic(err)
