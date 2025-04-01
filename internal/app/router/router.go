@@ -3,14 +3,14 @@ package router
 import (
 	"github.com/go-chi/chi/v5"
 	"github.com/thxhix/shortener/internal/app/config"
-	"github.com/thxhix/shortener/internal/app/database"
+	"github.com/thxhix/shortener/internal/app/database/interfaces"
 	handle "github.com/thxhix/shortener/internal/app/handlers"
 	"github.com/thxhix/shortener/internal/app/middleware"
 	"github.com/thxhix/shortener/internal/app/usecase"
 	"go.uber.org/zap"
 )
 
-func NewRouter(cfg *config.Config, db database.Database) *chi.Mux {
+func NewRouter(cfg *config.Config, db interfaces.Database) *chi.Mux {
 	uc := usecase.NewURLUseCase(db)
 
 	logger := zap.NewExample()

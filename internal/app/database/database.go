@@ -1,14 +1,17 @@
 package database
 
-type Database interface {
-	AddLink(original string, shorten string) (string, error)
-	GetFullLink(hash string) (string, error)
-	Close() error
-	PingConnection() error
-}
+import (
+	"github.com/thxhix/shortener/internal/app/config"
+	"github.com/thxhix/shortener/internal/app/database/drivers"
+	"github.com/thxhix/shortener/internal/app/database/interfaces"
+)
 
-type LinkRow struct {
-	UUID int    `json:"uuid"`
-	Hash string `json:"hash"`
-	URL  string `json:"url"`
+func NewDatabase(config *config.Config) (interfaces.Database, error) {
+	if config.PostgresQL != "" {
+		return drivers.NewPQLDatabase(config.PostgresQL)
+	}
+	if config.DBFileName != "" {
+		return drivers.NewFileDatabase(config.DBFileName)
+	}
+	return drivers.NewMemoryDatabase()
 }

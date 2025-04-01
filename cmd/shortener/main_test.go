@@ -3,7 +3,7 @@ package main
 
 import (
 	"bytes"
-	"github.com/thxhix/shortener/internal/app/database/drivers"
+	"github.com/thxhix/shortener/internal/app/database"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -21,7 +21,8 @@ var r *chi.Mux
 
 func TestMain(m *testing.M) {
 	cfg = *config.NewConfig()
-	db, err := drivers.NewFileDatabase(cfg.DBFileName)
+	cfg.PostgresQL = "user=postgres password=129755 dbname=yp_go sslmode=disable"
+	db, err := database.NewDatabase(&cfg)
 	if err != nil {
 		panic(err)
 	}

@@ -1,20 +1,20 @@
 package usecase
 
 import (
-	"github.com/thxhix/shortener/internal/app/database"
+	"github.com/thxhix/shortener/internal/app/database/interfaces"
 )
 
 type URLUseCaseInterface interface {
 	Shorten(url string) (string, error)
 	GetFullURL(url string) (string, error)
-	PingConnection(tempDB database.Database) error // TODO : Убрать tempDB когда переедем на SQL хранилища
+	PingDB() error
 }
 
 type URLUseCase struct {
-	database database.Database
+	database interfaces.Database
 }
 
-func NewURLUseCase(db database.Database) *URLUseCase {
+func NewURLUseCase(db interfaces.Database) *URLUseCase {
 	return &URLUseCase{database: db}
 }
 
@@ -35,7 +35,6 @@ func (u *URLUseCase) GetFullURL(hash string) (string, error) {
 	return link, nil
 }
 
-// TODO : Убрать tempDB когда переедем на SQL хранилища
-func (u *URLUseCase) PingConnection(tempDB database.Database) error {
-	return tempDB.PingConnection()
+func (u *URLUseCase) PingDB() error {
+	return u.database.PingConnection()
 }

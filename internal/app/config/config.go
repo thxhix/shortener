@@ -27,7 +27,7 @@ func NewConfig() *Config {
 
 	cfg.Address.Set(DefaultAddress)
 	cfg.BaseURL.Set(DefaultBaseURL)
-	cfg.DBFileName = DefaultDBFileName
+	//cfg.DBFileName = DefaultDBFileName
 	//cfg.PostgresQL = DefaultPostgresQL
 
 	cfg.ParseFlags()

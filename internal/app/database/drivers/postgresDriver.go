@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 	_ "github.com/lib/pq"
-	"github.com/thxhix/shortener/internal/app/database"
+	"github.com/thxhix/shortener/internal/app/models"
 	"time"
 )
 
@@ -13,13 +13,39 @@ type PostgresQLDatabase struct {
 }
 
 func (db *PostgresQLDatabase) AddLink(original string, shorten string) (string, error) {
-	//TODO implement me
-	panic("i can't do anything now..")
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	query := "INSERT INTO shortener (original, shorten) VALUES ($1, $2)"
+
+	_, err := db.driver.ExecContext(ctx, query, original, shorten)
+	if err != nil {
+		return "", err
+	}
+
+	return shorten, nil
 }
 
 func (db *PostgresQLDatabase) GetFullLink(hash string) (string, error) {
-	//TODO implement me
-	panic("i can't do anything now..")
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	query := "SELECT * FROM shortener WHERE (shorten) LIKE ($1)"
+
+	row := db.driver.QueryRowContext(ctx, query, hash)
+
+	var data models.DatabaseRow
+	err := row.Scan(
+		&data.ID,
+		&data.URL,
+		&data.Hash,
+		&data.Time,
+	)
+	if err != nil {
+		return "", err
+	}
+
+	return data.URL, nil
 }
 
 func (db *PostgresQLDatabase) Close() error {
@@ -32,7 +58,9 @@ func (db *PostgresQLDatabase) PingConnection() error {
 	return db.driver.PingContext(ctx)
 }
 
-func NewPQLDatabase(params string) (database.Database, error) {
+func (db *PostgresQLDatabase) GetDriver() *sql.DB { return db.driver }
+
+func NewPQLDatabase(params string) (*PostgresQLDatabase, error) {
 	db, err := sql.Open("postgres", params)
 	if err != nil {
 		return nil, err

@@ -2,9 +2,11 @@ package drivers
 
 import (
 	"bufio"
+	"database/sql"
 	"encoding/json"
 	"errors"
-	"github.com/thxhix/shortener/internal/app/database"
+	"github.com/thxhix/shortener/internal/app/database/interfaces"
+	"github.com/thxhix/shortener/internal/app/models"
 	"os"
 )
 
@@ -13,7 +15,7 @@ type FileDatabase struct {
 	encoder *json.Encoder
 }
 
-func NewFileDatabase(filePath string) (database.Database, error) {
+func NewFileDatabase(filePath string) (interfaces.Database, error) {
 	file, err := os.OpenFile(filePath, os.O_RDWR|os.O_CREATE, 0666)
 	if err != nil {
 		return nil, err
@@ -29,7 +31,7 @@ func (db *FileDatabase) Close() error {
 	return db.file.Close()
 }
 
-func (db *FileDatabase) WriteRow(row *database.LinkRow) error {
+func (db *FileDatabase) WriteRow(row *models.DatabaseRow) error {
 	err := db.encoder.Encode(row)
 	if err != nil {
 		return err
@@ -37,7 +39,7 @@ func (db *FileDatabase) WriteRow(row *database.LinkRow) error {
 	return db.file.Sync()
 }
 
-func (db *FileDatabase) FindByHash(hash string) (*database.LinkRow, error) {
+func (db *FileDatabase) FindByHash(hash string) (*models.DatabaseRow, error) {
 	_, err := db.file.Seek(0, 0)
 	if err != nil {
 		return nil, err
@@ -45,7 +47,7 @@ func (db *FileDatabase) FindByHash(hash string) (*database.LinkRow, error) {
 
 	scanner := bufio.NewScanner(db.file)
 	for scanner.Scan() {
-		var row database.LinkRow
+		var row models.DatabaseRow
 		err := json.Unmarshal(scanner.Bytes(), &row)
 		if err != nil {
 			continue
@@ -72,10 +74,10 @@ func (db *FileDatabase) getLastUUID() (int, error) {
 	var lastUUID int
 
 	for scanner.Scan() {
-		var row database.LinkRow
+		var row models.DatabaseRow
 		err := json.Unmarshal(scanner.Bytes(), &row)
 		if err == nil {
-			lastUUID = row.UUID
+			lastUUID = row.ID
 		}
 	}
 
@@ -94,8 +96,8 @@ func (db *FileDatabase) AddLink(original string, shorten string) (string, error)
 
 	newID := lastID + 1
 
-	err = db.WriteRow(&database.LinkRow{
-		UUID: newID,
+	err = db.WriteRow(&models.DatabaseRow{
+		ID:   newID,
 		Hash: shorten,
 		URL:  original,
 	})
@@ -116,3 +118,5 @@ func (db *FileDatabase) GetFullLink(hash string) (string, error) {
 func (db *FileDatabase) PingConnection() error {
 	return nil
 }
+
+func (db *FileDatabase) GetDriver() *sql.DB { return nil }

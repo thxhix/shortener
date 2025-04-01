@@ -2,7 +2,8 @@ package server
 
 import (
 	"fmt"
-	"github.com/thxhix/shortener/internal/app/database/drivers"
+	"github.com/thxhix/shortener/internal/app/database"
+	"github.com/thxhix/shortener/internal/app/database/migrations"
 	"net/http"
 
 	"github.com/thxhix/shortener/internal/app/config"
@@ -24,10 +25,12 @@ func NewServer() ServerInterface {
 }
 
 func (s *Server) StartPooling() error {
-	db, err := drivers.NewFileDatabase(s.config.DBFileName)
+	db, err := database.NewDatabase(&s.config)
 	if err != nil {
 		panic(err)
 	}
+	// Кривое исполнение, но пока не представляю как работают миграции в Go
+	migrations.Migrate(db)
 
 	router := r.NewRouter(&s.config, db)
 
