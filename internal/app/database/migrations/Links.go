@@ -21,6 +21,5 @@ func Migrate(db interfaces.Database) {
 	if err != nil {
 		fmt.Println(err.Error())
 		panic("Не удалось сделать миграцию")
-		return
 	}
 }
