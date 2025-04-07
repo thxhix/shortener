@@ -27,7 +27,7 @@ type BatchList []BatchRow
 
 //easyjson:json
 type BatchRow struct {
-	ID   string `json:"-"`
-	Hash string `json:"correlation_id"`
+	ID   string `json:"correlation_id"`
+	Hash string `json:"-"`
 	URL  string `json:"original_url"`
 }
