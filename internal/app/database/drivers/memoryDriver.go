@@ -1,8 +1,10 @@
 package drivers
 
 import (
+	"context"
 	"database/sql"
 	"errors"
+	"github.com/thxhix/shortener/internal/app/models"
 )
 
 type MemoryDatabase struct {
@@ -15,6 +17,17 @@ func (db *MemoryDatabase) AddLink(original string, shorten string) (string, erro
 	}
 	db.storage[shorten] = original
 	return shorten, nil
+}
+
+func (db *MemoryDatabase) AddLinks(ctx context.Context, list models.BatchList) error {
+	for _, link := range list {
+		if _, err := db.GetFullLink(link.Hash); err == nil {
+			return err
+		}
+		db.storage[link.Hash] = link.URL
+	}
+
+	return nil
 }
 
 func (db *MemoryDatabase) GetFullLink(hash string) (string, error) {

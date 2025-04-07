@@ -107,6 +107,44 @@ func (h *Handler) APIStoreLink(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (h *Handler) BatchStoreLink(w http.ResponseWriter, r *http.Request) {
+	json, err := io.ReadAll(r.Body)
+	defer r.Body.Close()
+
+	if err != nil {
+		http.Error(w, "не удалось прочитать ссылки из тела запроса", http.StatusBadRequest)
+		return
+	}
+
+	var batch models.BatchList
+
+	if err := easyjson.Unmarshal(json, &batch); err != nil {
+		http.Error(w, "невалидный JSON", http.StatusBadRequest)
+		return
+	}
+
+	data, err := h.URLUsecase.BatchShorten(r.Context(), batch)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	result, err := data.MarshalJSON()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+
+	_, err = w.Write(result)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+}
+
 func (h *Handler) PingDatabase(w http.ResponseWriter, r *http.Request) {
 	err := h.URLUsecase.PingDB()
 	if err != nil {

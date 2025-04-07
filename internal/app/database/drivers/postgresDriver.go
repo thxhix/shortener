@@ -26,6 +26,36 @@ func (db *PostgresQLDatabase) AddLink(original string, shorten string) (string, 
 	return shorten, nil
 }
 
+func (db *PostgresQLDatabase) AddLinks(ctx context.Context, list models.BatchList) error {
+	tx, err := db.driver.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	defer tx.Rollback()
+
+	stmt, err := tx.PrepareContext(ctx, "INSERT INTO shortener (original, shorten) VALUES($1, $2)")
+
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	for _, row := range list {
+		_, err := stmt.ExecContext(ctx, row.URL, row.Hash)
+		if err != nil {
+			return err
+		}
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (db *PostgresQLDatabase) GetFullLink(hash string) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()

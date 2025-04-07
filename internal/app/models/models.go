@@ -21,3 +21,13 @@ type DatabaseRow struct {
 	URL  string    `json:"url"`
 	Time time.Time `json:"time"`
 }
+
+//easyjson:json
+type BatchList []BatchRow
+
+//easyjson:json
+type BatchRow struct {
+	ID   string `json:"-"`
+	Hash string `json:"correlation_id"`
+	URL  string `json:"original_url"`
+}

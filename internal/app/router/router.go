@@ -29,7 +29,10 @@ func NewRouter(cfg *config.Config, db interfaces.Database) *chi.Mux {
 		r.Get("/ping", handlers.PingDatabase)
 
 		r.Route("/api", func(r chi.Router) {
-			r.Post("/shorten", handlers.APIStoreLink)
+			r.Route("/shorten", func(r chi.Router) {
+				r.Post("/", handlers.APIStoreLink)
+				r.Post("/batch", handlers.BatchStoreLink)
+			})
 		})
 	})
 

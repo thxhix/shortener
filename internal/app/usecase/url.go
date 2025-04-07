@@ -1,13 +1,16 @@
 package usecase
 
 import (
+	"context"
 	"github.com/thxhix/shortener/internal/app/database/interfaces"
+	"github.com/thxhix/shortener/internal/app/models"
 )
 
 type URLUseCaseInterface interface {
 	Shorten(url string) (string, error)
 	GetFullURL(url string) (string, error)
 	PingDB() error
+	BatchShorten(ctx context.Context, list models.BatchList) (models.BatchList, error)
 }
 
 type URLUseCase struct {
@@ -37,4 +40,21 @@ func (u *URLUseCase) GetFullURL(hash string) (string, error) {
 
 func (u *URLUseCase) PingDB() error {
 	return u.database.PingConnection()
+}
+
+func (u *URLUseCase) BatchShorten(ctx context.Context, list models.BatchList) (models.BatchList, error) {
+	var result models.BatchList
+
+	for _, batch := range list {
+		shorten := GetHash()
+		batch.Hash = shorten
+		result = append(result, batch)
+	}
+
+	err := u.database.AddLinks(ctx, result)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }

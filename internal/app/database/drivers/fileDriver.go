@@ -2,6 +2,7 @@ package drivers
 
 import (
 	"bufio"
+	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -105,6 +106,28 @@ func (db *FileDatabase) AddLink(original string, shorten string) (string, error)
 		return "", err
 	}
 	return shorten, nil
+}
+
+func (db *FileDatabase) AddLinks(ctx context.Context, list models.BatchList) error {
+	for _, link := range list {
+		lastID, err := db.getLastUUID()
+		if err != nil {
+			return err
+		}
+
+		newID := lastID + 1
+
+		err = db.WriteRow(&models.DatabaseRow{
+			ID:   newID,
+			Hash: link.Hash,
+			URL:  link.URL,
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (db *FileDatabase) GetFullLink(hash string) (string, error) {
