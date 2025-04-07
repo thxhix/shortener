@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/thxhix/shortener/internal/app/database/interfaces"
 	"github.com/thxhix/shortener/internal/app/models"
 	"os"
@@ -117,6 +118,7 @@ func (db *FileDatabase) AddLinks(ctx context.Context, list models.DatabaseRowLis
 
 		link.ID = lastID + 1
 
+		fmt.Println("Добавил: ", link)
 		err = db.WriteRow(&link)
 
 		if err != nil {
