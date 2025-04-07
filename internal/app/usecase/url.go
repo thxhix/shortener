@@ -2,7 +2,7 @@ package usecase
 
 import (
 	"context"
-	"fmt"
+	"github.com/thxhix/shortener/internal/app/config"
 	"github.com/thxhix/shortener/internal/app/database/interfaces"
 	"github.com/thxhix/shortener/internal/app/models"
 )
@@ -16,10 +16,14 @@ type URLUseCaseInterface interface {
 
 type URLUseCase struct {
 	database interfaces.Database
+	cfg      *config.Config
 }
 
-func NewURLUseCase(db interfaces.Database) *URLUseCase {
-	return &URLUseCase{database: db}
+func NewURLUseCase(db interfaces.Database, cfg config.Config) *URLUseCase {
+	return &URLUseCase{
+		database: db,
+		cfg:      &cfg,
+	}
 }
 
 func (u *URLUseCase) Shorten(originalURL string) (string, error) {
@@ -58,12 +62,10 @@ func (u *URLUseCase) BatchShorten(ctx context.Context, list models.BatchRequestL
 
 		responseRow := models.BatchResponse{
 			ID:   batch.ID,
-			Hash: row.Hash,
+			Hash: u.cfg.BaseURL.String() + "/" + row.Hash,
 		}
 		response = append(response, responseRow)
 	}
-
-	fmt.Println("to add:", result)
 
 	err := u.database.AddLinks(ctx, result)
 	if err != nil {

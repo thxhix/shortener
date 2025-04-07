@@ -11,7 +11,7 @@ import (
 )
 
 func NewRouter(cfg *config.Config, db interfaces.Database) *chi.Mux {
-	uc := usecase.NewURLUseCase(db)
+	uc := usecase.NewURLUseCase(db, *cfg)
 
 	logger := zap.NewExample()
 	defer logger.Sync()
