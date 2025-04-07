@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"fmt"
 	"github.com/thxhix/shortener/internal/app/database/interfaces"
 	"github.com/thxhix/shortener/internal/app/models"
 )
@@ -61,6 +62,8 @@ func (u *URLUseCase) BatchShorten(ctx context.Context, list models.BatchRequestL
 		}
 		response = append(response, responseRow)
 	}
+
+	fmt.Println("to add:", result)
 
 	err := u.database.AddLinks(ctx, result)
 	if err != nil {
