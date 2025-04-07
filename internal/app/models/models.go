@@ -15,6 +15,9 @@ type ShortURL struct {
 }
 
 //easyjson:json
+type DatabaseRowList []DatabaseRow
+
+//easyjson:json
 type DatabaseRow struct {
 	ID   int       `json:"id"`
 	Hash string    `json:"hash"`
@@ -23,11 +26,18 @@ type DatabaseRow struct {
 }
 
 //easyjson:json
-type BatchList []BatchRow
+type BatchRequestList []BatchRequest
 
 //easyjson:json
-type BatchRow struct {
+type BatchRequest struct {
+	ID  string `json:"correlation_id"`
+	URL string `json:"original_url"`
+}
+
+//easyjson:json
+type BatchResponseList []BatchResponse
+
+type BatchResponse struct {
 	ID   string `json:"correlation_id"`
 	Hash string `json:"short_url"`
-	URL  string `json:"-"`
 }

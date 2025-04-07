@@ -108,20 +108,17 @@ func (db *FileDatabase) AddLink(original string, shorten string) (string, error)
 	return shorten, nil
 }
 
-func (db *FileDatabase) AddLinks(ctx context.Context, list models.BatchList) error {
+func (db *FileDatabase) AddLinks(ctx context.Context, list models.DatabaseRowList) error {
 	for _, link := range list {
 		lastID, err := db.getLastUUID()
 		if err != nil {
 			return err
 		}
 
-		newID := lastID + 1
+		link.ID = lastID + 1
 
-		err = db.WriteRow(&models.DatabaseRow{
-			ID:   newID,
-			Hash: link.Hash,
-			URL:  link.URL,
-		})
+		err = db.WriteRow(&link)
+
 		if err != nil {
 			return err
 		}

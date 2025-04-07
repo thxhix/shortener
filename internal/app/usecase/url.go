@@ -10,7 +10,7 @@ type URLUseCaseInterface interface {
 	Shorten(url string) (string, error)
 	GetFullURL(url string) (string, error)
 	PingDB() error
-	BatchShorten(ctx context.Context, list models.BatchList) (models.BatchList, error)
+	BatchShorten(ctx context.Context, list models.BatchRequestList) (models.BatchResponseList, error)
 }
 
 type URLUseCase struct {
@@ -42,13 +42,24 @@ func (u *URLUseCase) PingDB() error {
 	return u.database.PingConnection()
 }
 
-func (u *URLUseCase) BatchShorten(ctx context.Context, list models.BatchList) (models.BatchList, error) {
-	var result models.BatchList
+func (u *URLUseCase) BatchShorten(ctx context.Context, list models.BatchRequestList) (models.BatchResponseList, error) {
+	var result models.DatabaseRowList
+	var response models.BatchResponseList
 
+	// Будто очень кривое исполнение, но надо сдать спринт..
+	// TODO: глянуть, отрефакторить
 	for _, batch := range list {
-		shorten := GetHash()
-		batch.Hash = shorten
-		result = append(result, batch)
+		row := models.DatabaseRow{
+			Hash: GetHash(),
+			URL:  batch.URL,
+		}
+		result = append(result, row)
+
+		responseRow := models.BatchResponse{
+			ID:   batch.ID,
+			Hash: row.Hash,
+		}
+		response = append(response, responseRow)
 	}
 
 	err := u.database.AddLinks(ctx, result)
@@ -56,5 +67,5 @@ func (u *URLUseCase) BatchShorten(ctx context.Context, list models.BatchList) (m
 		return nil, err
 	}
 
-	return result, nil
+	return response, nil
 }

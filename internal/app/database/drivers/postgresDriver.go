@@ -26,7 +26,7 @@ func (db *PostgresQLDatabase) AddLink(original string, shorten string) (string, 
 	return shorten, nil
 }
 
-func (db *PostgresQLDatabase) AddLinks(ctx context.Context, list models.BatchList) error {
+func (db *PostgresQLDatabase) AddLinks(ctx context.Context, list models.DatabaseRowList) error {
 	tx, err := db.driver.BeginTx(ctx, nil)
 	if err != nil {
 		return err

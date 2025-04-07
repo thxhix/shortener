@@ -8,7 +8,7 @@ import (
 
 type Database interface {
 	AddLink(original string, shorten string) (string, error)
-	AddLinks(ctx context.Context, list models.BatchList) error
+	AddLinks(ctx context.Context, list models.DatabaseRowList) error
 	GetFullLink(hash string) (string, error)
 	Close() error
 	PingConnection() error

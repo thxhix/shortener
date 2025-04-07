@@ -116,7 +116,7 @@ func (h *Handler) BatchStoreLink(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var batch models.BatchList
+	var batch models.BatchRequestList
 
 	if err := easyjson.Unmarshal(json, &batch); err != nil {
 		http.Error(w, "невалидный JSON", http.StatusBadRequest)
