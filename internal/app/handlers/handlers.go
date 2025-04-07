@@ -123,6 +123,11 @@ func (h *Handler) BatchStoreLink(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if len(batch) == 0 {
+		http.Error(w, "пустой batch в запросе", http.StatusBadRequest)
+		return
+	}
+
 	data, err := h.URLUsecase.BatchShorten(r.Context(), batch)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
