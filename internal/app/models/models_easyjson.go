@@ -259,8 +259,8 @@ func easyjsonD2b7633eDecodeGithubComThxhixShortenerInternalAppModels3(in *jlexer
 		switch key {
 		case "correlation_id":
 			out.ID = string(in.String())
-		case "original_url":
-			out.URL = string(in.String())
+		case "short_url":
+			out.Hash = string(in.String())
 		default:
 			in.SkipRecursive()
 		}
@@ -281,9 +281,9 @@ func easyjsonD2b7633eEncodeGithubComThxhixShortenerInternalAppModels3(out *jwrit
 		out.String(string(in.ID))
 	}
 	{
-		const prefix string = ",\"original_url\":"
+		const prefix string = ",\"short_url\":"
 		out.RawString(prefix)
-		out.String(string(in.URL))
+		out.String(string(in.Hash))
 	}
 	out.RawByte('}')
 }
