@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"github.com/thxhix/shortener/internal/app/models"
 	"github.com/thxhix/shortener/internal/app/usecase"
 	"io"
@@ -57,9 +56,7 @@ func (h *Handler) StoreLink(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) Redirect(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
-	fmt.Println("try to find link", id)
 	link, err := h.URLUsecase.GetFullURL(id)
-	fmt.Println("find", link, err)
 	if err != nil {
 		http.Error(w, "такой страницы нет", http.StatusBadRequest)
 		return

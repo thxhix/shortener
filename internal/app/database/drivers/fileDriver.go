@@ -118,7 +118,6 @@ func (db *FileDatabase) AddLinks(ctx context.Context, list models.DatabaseRowLis
 
 		link.ID = lastID + 1
 
-		fmt.Println("Добавил: ", link)
 		err = db.WriteRow(&link)
 
 		if err != nil {
