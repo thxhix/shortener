@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"errors"
+	custorErrors "github.com/thxhix/shortener/internal/app/errors"
 	"github.com/thxhix/shortener/internal/app/models"
 	"github.com/thxhix/shortener/internal/app/usecase"
 	"io"
@@ -37,14 +39,23 @@ func (h *Handler) StoreLink(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var isConflict = false
 	link, err := h.URLUsecase.Shorten(parsedURL.String())
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
+		if errors.Is(err, custorErrors.ErrDuplicate) {
+			isConflict = true
+		} else {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
 	}
 
 	w.Header().Set("Content-Type", "text/plain")
-	w.WriteHeader(http.StatusCreated)
+	if !isConflict {
+		w.WriteHeader(http.StatusCreated)
+	} else {
+		w.WriteHeader(http.StatusConflict)
+	}
 
 	_, err = io.WriteString(w, h.config.BaseURL.String()+"/"+link)
 	if err != nil {
@@ -82,10 +93,16 @@ func (h *Handler) APIStoreLink(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var isConflict = false
+
 	link, err := h.URLUsecase.Shorten(fullURL.URL)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
+		if errors.Is(err, custorErrors.ErrDuplicate) {
+			isConflict = true
+		} else {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
 	}
 
 	link = h.config.BaseURL.String() + "/" + link
@@ -98,7 +115,11 @@ func (h *Handler) APIStoreLink(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
+	if !isConflict {
+		w.WriteHeader(http.StatusCreated)
+	} else {
+		w.WriteHeader(http.StatusConflict)
+	}
 
 	_, err = w.Write(result)
 	if err != nil {

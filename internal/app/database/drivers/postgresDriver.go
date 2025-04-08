@@ -3,7 +3,9 @@ package drivers
 import (
 	"context"
 	"database/sql"
+	"errors"
 	_ "github.com/lib/pq"
+	customErrors "github.com/thxhix/shortener/internal/app/errors"
 	"github.com/thxhix/shortener/internal/app/models"
 	"time"
 )
@@ -16,14 +18,29 @@ func (db *PostgresQLDatabase) AddLink(original string, shorten string) (string, 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	query := "INSERT INTO shortener (original, shorten) VALUES ($1, $2)"
+	query := `
+        INSERT INTO shortener (original, shorten)
+        VALUES ($1, $2)
+        ON CONFLICT (original) DO NOTHING
+        RETURNING shorten
+    `
 
-	_, err := db.driver.ExecContext(ctx, query, original, shorten)
+	var insertedShorten string
+	err := db.driver.QueryRowContext(ctx, query, original, shorten).Scan(&insertedShorten)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			err = db.driver.QueryRowContext(ctx,
+				"SELECT shorten FROM shortener WHERE original = $1", original,
+			).Scan(&insertedShorten)
+			if err != nil {
+				return "", err
+			}
+			return insertedShorten, customErrors.NewDuplicateError()
+		}
 		return "", err
 	}
 
-	return shorten, nil
+	return insertedShorten, nil
 }
 
 func (db *PostgresQLDatabase) AddLinks(ctx context.Context, list models.DatabaseRowList) error {

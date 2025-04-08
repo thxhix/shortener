@@ -2,8 +2,10 @@ package usecase
 
 import (
 	"context"
+	"errors"
 	"github.com/thxhix/shortener/internal/app/config"
 	"github.com/thxhix/shortener/internal/app/database/interfaces"
+	customErrors "github.com/thxhix/shortener/internal/app/errors"
 	"github.com/thxhix/shortener/internal/app/models"
 )
 
@@ -30,6 +32,9 @@ func (u *URLUseCase) Shorten(originalURL string) (string, error) {
 	shorten := GetHash()
 	shorten, err := u.database.AddLink(originalURL, shorten)
 	if err != nil {
+		if errors.Is(err, customErrors.ErrDuplicate) {
+			return shorten, customErrors.ErrDuplicate
+		}
 		return "", err
 	}
 	return shorten, nil

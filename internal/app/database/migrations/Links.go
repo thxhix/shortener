@@ -9,7 +9,7 @@ func Migrate(db interfaces.Database) {
 	query := `
 	CREATE TABLE IF NOT EXISTS shortener (
 		id SERIAL PRIMARY KEY,
-		original VARCHAR(512) NOT NULL,
+		original VARCHAR(512) UNIQUE NOT NULL,
 		shorten VARCHAR(10) UNIQUE NOT NULL,
 		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 	);`
