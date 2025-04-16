@@ -43,7 +43,7 @@ func (db *PostgresQLDatabase) AddLink(original string, shorten string) (string, 
 	return insertedShorten, nil
 }
 
-func (db *PostgresQLDatabase) AddLinks(ctx context.Context, list models.DatabaseRowList) error {
+func (db *PostgresQLDatabase) AddLinks(ctx context.Context, list models.DBShortenRowList) error {
 	tx, err := db.driver.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -81,7 +81,7 @@ func (db *PostgresQLDatabase) GetFullLink(hash string) (string, error) {
 
 	row := db.driver.QueryRowContext(ctx, query, hash)
 
-	var data models.DatabaseRow
+	var data models.DBShortenRow
 	err := row.Scan(
 		&data.ID,
 		&data.URL,

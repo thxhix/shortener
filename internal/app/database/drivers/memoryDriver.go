@@ -19,7 +19,7 @@ func (db *MemoryDatabase) AddLink(original string, shorten string) (string, erro
 	return shorten, nil
 }
 
-func (db *MemoryDatabase) AddLinks(ctx context.Context, list models.DatabaseRowList) error {
+func (db *MemoryDatabase) AddLinks(ctx context.Context, list models.DBShortenRowList) error {
 	for _, link := range list {
 		if _, err := db.GetFullLink(link.Hash); err == nil {
 			return err

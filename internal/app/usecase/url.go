@@ -13,7 +13,7 @@ type URLUseCaseInterface interface {
 	Shorten(url string) (string, error)
 	GetFullURL(url string) (string, error)
 	PingDB() error
-	BatchShorten(ctx context.Context, list models.BatchRequestList) (models.BatchResponseList, error)
+	BatchShorten(ctx context.Context, list models.BatchShortenRequestList) (models.BatchShortenResponseList, error)
 }
 
 type URLUseCase struct {
@@ -52,20 +52,20 @@ func (u *URLUseCase) PingDB() error {
 	return u.database.PingConnection()
 }
 
-func (u *URLUseCase) BatchShorten(ctx context.Context, list models.BatchRequestList) (models.BatchResponseList, error) {
-	var result models.DatabaseRowList
-	var response models.BatchResponseList
+func (u *URLUseCase) BatchShorten(ctx context.Context, list models.BatchShortenRequestList) (models.BatchShortenResponseList, error) {
+	var result models.DBShortenRowList
+	var response models.BatchShortenResponseList
 
 	// Будто очень кривое исполнение, но надо сдать спринт..
 	// TODO: глянуть, отрефакторить
 	for _, batch := range list {
-		row := models.DatabaseRow{
+		row := models.DBShortenRow{
 			Hash: GetHash(),
 			URL:  batch.URL,
 		}
 		result = append(result, row)
 
-		responseRow := models.BatchResponse{
+		responseRow := models.BatchShortenResponse{
 			ID:   batch.ID,
 			Hash: u.cfg.BaseURL.String() + "/" + row.Hash,
 		}

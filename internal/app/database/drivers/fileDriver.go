@@ -32,7 +32,7 @@ func (db *FileDatabase) Close() error {
 	return db.file.Close()
 }
 
-func (db *FileDatabase) WriteRow(row *models.DatabaseRow) error {
+func (db *FileDatabase) WriteRow(row *models.DBShortenRow) error {
 	err := db.encoder.Encode(row)
 	if err != nil {
 		return err
@@ -40,7 +40,7 @@ func (db *FileDatabase) WriteRow(row *models.DatabaseRow) error {
 	return db.file.Sync()
 }
 
-func (db *FileDatabase) FindByHash(hash string) (*models.DatabaseRow, error) {
+func (db *FileDatabase) FindByHash(hash string) (*models.DBShortenRow, error) {
 	_, err := db.file.Seek(0, 0)
 	if err != nil {
 		return nil, err
@@ -48,7 +48,7 @@ func (db *FileDatabase) FindByHash(hash string) (*models.DatabaseRow, error) {
 
 	scanner := bufio.NewScanner(db.file)
 	for scanner.Scan() {
-		var row models.DatabaseRow
+		var row models.DBShortenRow
 		err := json.Unmarshal(scanner.Bytes(), &row)
 		if err != nil {
 			continue
@@ -75,7 +75,7 @@ func (db *FileDatabase) getLastUUID() (int, error) {
 	var lastUUID int
 
 	for scanner.Scan() {
-		var row models.DatabaseRow
+		var row models.DBShortenRow
 		err := json.Unmarshal(scanner.Bytes(), &row)
 		if err == nil {
 			lastUUID = row.ID
@@ -97,7 +97,7 @@ func (db *FileDatabase) AddLink(original string, shorten string) (string, error)
 
 	newID := lastID + 1
 
-	err = db.WriteRow(&models.DatabaseRow{
+	err = db.WriteRow(&models.DBShortenRow{
 		ID:   newID,
 		Hash: shorten,
 		URL:  original,
@@ -108,7 +108,7 @@ func (db *FileDatabase) AddLink(original string, shorten string) (string, error)
 	return shorten, nil
 }
 
-func (db *FileDatabase) AddLinks(ctx context.Context, list models.DatabaseRowList) error {
+func (db *FileDatabase) AddLinks(ctx context.Context, list models.DBShortenRowList) error {
 	for _, link := range list {
 		lastID, err := db.getLastUUID()
 		if err != nil {

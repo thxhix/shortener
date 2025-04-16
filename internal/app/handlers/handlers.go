@@ -130,14 +130,13 @@ func (h *Handler) APIStoreLink(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) BatchStoreLink(w http.ResponseWriter, r *http.Request) {
 	json, err := io.ReadAll(r.Body)
-	defer r.Body.Close()
-
 	if err != nil {
 		http.Error(w, "не удалось прочитать ссылки из тела запроса", http.StatusBadRequest)
 		return
 	}
+	defer r.Body.Close()
 
-	var batch models.BatchRequestList
+	var batch models.BatchShortenRequestList
 
 	if err := easyjson.Unmarshal(json, &batch); err != nil {
 		http.Error(w, "невалидный JSON", http.StatusBadRequest)
