@@ -17,7 +17,7 @@ import (
 )
 
 var cfg config.Config
-var r *chi.Mux
+var route *chi.Mux
 
 func TestMain(m *testing.M) {
 	cfg = *config.NewConfig()
@@ -25,7 +25,7 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		panic(err)
 	}
-	r = router.NewRouter(&cfg, db)
+	route = router.NewRouter(&cfg, db)
 
 	os.Exit(m.Run())
 }
@@ -76,7 +76,7 @@ func Test_shortLink(t *testing.T) {
 			}
 			w := httptest.NewRecorder()
 
-			r.ServeHTTP(w, req)
+			route.ServeHTTP(w, req)
 
 			require.Equal(t, tt.want.statusCode, w.Code, "Код ответа не совпадает с ожидаемым")
 		})
@@ -124,7 +124,7 @@ func Test_getFullLink(t *testing.T) {
 			}
 			w := httptest.NewRecorder()
 
-			r.ServeHTTP(w, req)
+			route.ServeHTTP(w, req)
 
 			require.Equal(t, tt.want.statusCode, w.Code, "Код ответа не совпадает с ожидаемым")
 			require.Equal(t, tt.want.header, w.Header().Get("Location"), "Header Location не совпадает с ожидаемым")
@@ -170,7 +170,7 @@ func Test_APIStoreLink(t *testing.T) {
 			}
 			w := httptest.NewRecorder()
 
-			r.ServeHTTP(w, req)
+			route.ServeHTTP(w, req)
 
 			require.Equal(t, tt.want.statusCode, w.Code, "Код ответа не совпадает с ожидаемым")
 			require.Equal(t, tt.want.contentType, w.Header().Get("Content-Type"), "Content-Type ответа не совпадает с ожидаемым")
@@ -240,7 +240,7 @@ func Test_BatchStoreLink(t *testing.T) {
 			}
 			w := httptest.NewRecorder()
 
-			r.ServeHTTP(w, req)
+			route.ServeHTTP(w, req)
 
 			require.Equal(t, tt.want.statusCode, w.Code, "Код ответа не совпадает с ожидаемым")
 			require.Equal(t, tt.want.contentType, w.Header().Get("Content-Type"), "Content-Type ответа не совпадает с ожидаемым")

@@ -2,12 +2,11 @@ package server
 
 import (
 	"fmt"
-	"github.com/thxhix/shortener/internal/app/database"
-	"github.com/thxhix/shortener/internal/app/database/migrations"
+	"github.com/go-chi/chi/v5"
+	"github.com/thxhix/shortener/internal/app/database/interfaces"
 	"net/http"
 
 	"github.com/thxhix/shortener/internal/app/config"
-	r "github.com/thxhix/shortener/internal/app/router"
 )
 
 type ServerInterface interface {
@@ -15,31 +14,26 @@ type ServerInterface interface {
 }
 
 type Server struct {
-	config config.Config
+	config   *config.Config
+	router   *chi.Mux
+	database interfaces.Database
 }
 
-func NewServer() ServerInterface {
+func NewServer(config config.Config, router chi.Mux, db interfaces.Database) ServerInterface {
 	return &Server{
-		config: *config.NewConfig(),
+		config:   &config,
+		router:   &router,
+		database: db,
 	}
 }
 
 func (s *Server) StartPooling() error {
-	db, err := database.NewDatabase(&s.config)
-	if err != nil {
-		panic(err)
-	}
-	// Кривое исполнение, но пока не представляю как работают миграции в Go
-	migrations.Migrate(db)
-
-	router := r.NewRouter(&s.config, db)
-
 	fmt.Println("* * * Запускаюсь * * *")
 	fmt.Println("Адрес: " + s.config.Address.String())
 	fmt.Println("Base URL: " + s.config.BaseURL.String())
 	fmt.Println("* * * * * * * * * * *")
 
-	if err := http.ListenAndServe(s.config.Address.String(), router); err != nil {
+	if err := http.ListenAndServe(s.config.Address.String(), s.router); err != nil {
 		return err
 	}
 

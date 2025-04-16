@@ -1,11 +1,10 @@
 package migrations
 
 import (
-	"fmt"
 	"github.com/thxhix/shortener/internal/app/database/interfaces"
 )
 
-func Migrate(db interfaces.Database) {
+func Migrate(db interfaces.Database) error {
 	query := `
 	CREATE TABLE IF NOT EXISTS shortener (
 		id SERIAL PRIMARY KEY,
@@ -15,11 +14,11 @@ func Migrate(db interfaces.Database) {
 	);`
 	driver := db.GetDriver()
 	if driver == nil {
-		return
+		return nil
 	}
 	_, err := driver.Exec(query)
 	if err != nil {
-		fmt.Println(err.Error())
-		panic("Не удалось сделать миграцию")
+		return err
 	}
+	return nil
 }
