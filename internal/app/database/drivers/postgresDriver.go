@@ -22,6 +22,7 @@ func (db *PostgresQLDatabase) AddLink(original string, shorten string) (string, 
         INSERT INTO shortener (original, shorten)
         VALUES ($1, $2)
         ON CONFLICT (original) DO NOTHING
+        RETURNING shorten
     `
 	var insertedShorten string
 	err := db.driver.QueryRowContext(ctx, query, original, shorten).Scan(&insertedShorten)
