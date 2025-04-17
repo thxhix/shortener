@@ -45,7 +45,7 @@ func (h *Handler) StoreLink(w http.ResponseWriter, r *http.Request) {
 		if errors.Is(err, custorErrors.ErrDuplicate) {
 			isConflict = true
 		} else {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 	}
@@ -59,7 +59,7 @@ func (h *Handler) StoreLink(w http.ResponseWriter, r *http.Request) {
 
 	_, err = io.WriteString(w, h.config.BaseURL.String()+"/"+link)
 	if err != nil {
-		http.Error(w, "не удалось записать ответ", http.StatusBadRequest)
+		http.Error(w, "не удалось записать ответ", http.StatusInternalServerError)
 		return
 	}
 }
@@ -89,7 +89,7 @@ func (h *Handler) APIStoreLink(w http.ResponseWriter, r *http.Request) {
 	fullURL := &models.FullURL{}
 	err = easyjson.Unmarshal(json, fullURL)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -100,7 +100,7 @@ func (h *Handler) APIStoreLink(w http.ResponseWriter, r *http.Request) {
 		if errors.Is(err, custorErrors.ErrDuplicate) {
 			isConflict = true
 		} else {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 	}
@@ -110,7 +110,7 @@ func (h *Handler) APIStoreLink(w http.ResponseWriter, r *http.Request) {
 	shortURL := models.ShortURL{Result: link}
 	result, err := easyjson.Marshal(shortURL)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -123,7 +123,7 @@ func (h *Handler) APIStoreLink(w http.ResponseWriter, r *http.Request) {
 
 	_, err = w.Write(result)
 	if err != nil {
-		http.Error(w, "не удалось записать ответ", http.StatusBadRequest)
+		http.Error(w, "не удалось записать ответ", http.StatusInternalServerError)
 		return
 	}
 }
