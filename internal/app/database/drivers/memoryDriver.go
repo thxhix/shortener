@@ -4,22 +4,31 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	customErrors "github.com/thxhix/shortener/internal/app/errors"
 	"github.com/thxhix/shortener/internal/app/models"
+	"sync"
 )
 
 type MemoryDatabase struct {
 	storage map[string]string
+	mutex   sync.RWMutex
 }
 
 func (db *MemoryDatabase) AddLink(original string, shorten string) (string, error) {
+	db.mutex.RLock()
+	defer db.mutex.RUnlock()
+
 	if _, err := db.GetFullLink(shorten); err == nil {
-		return "", errors.New("такая запись в БД уже есть")
+		return "", customErrors.ErrDuplicate
 	}
 	db.storage[shorten] = original
 	return shorten, nil
 }
 
 func (db *MemoryDatabase) AddLinks(ctx context.Context, list models.DBShortenRowList) error {
+	db.mutex.RLock()
+	defer db.mutex.RUnlock()
+
 	for _, link := range list {
 		if _, err := db.GetFullLink(link.Hash); err == nil {
 			return err
@@ -31,11 +40,14 @@ func (db *MemoryDatabase) AddLinks(ctx context.Context, list models.DBShortenRow
 }
 
 func (db *MemoryDatabase) GetFullLink(hash string) (string, error) {
+	db.mutex.RLock()
+	defer db.mutex.RUnlock()
+
 	value, ok := db.storage[hash]
 	if ok {
 		return value, nil
 	}
-	return value, errors.New("нет такой записи в БД")
+	return "", errors.New("нет такой записи в БД")
 }
 
 func (db *MemoryDatabase) Close() error {
