@@ -15,10 +15,10 @@ type MemoryDatabase struct {
 }
 
 func (db *MemoryDatabase) AddLink(original string, shorten string) (string, error) {
-	db.mutex.RLock()
-	defer db.mutex.RUnlock()
+	db.mutex.Lock()
+	defer db.mutex.Unlock()
 
-	if _, err := db.GetFullLink(shorten); err == nil {
+	if _, exists := db.storage[shorten]; exists {
 		return "", customErrors.ErrDuplicate
 	}
 	db.storage[shorten] = original
@@ -26,12 +26,12 @@ func (db *MemoryDatabase) AddLink(original string, shorten string) (string, erro
 }
 
 func (db *MemoryDatabase) AddLinks(ctx context.Context, list models.DBShortenRowList) error {
-	db.mutex.RLock()
-	defer db.mutex.RUnlock()
+	db.mutex.Lock()
+	defer db.mutex.Unlock()
 
 	for _, link := range list {
-		if _, err := db.GetFullLink(link.Hash); err == nil {
-			return err
+		if _, exists := db.storage[link.Hash]; exists {
+			return customErrors.ErrDuplicate
 		}
 		db.storage[link.Hash] = link.URL
 	}
@@ -65,5 +65,6 @@ func (db *MemoryDatabase) GetDriver() *sql.DB {
 func NewMemoryDatabase() (*MemoryDatabase, error) {
 	return &MemoryDatabase{
 		storage: make(map[string]string),
+		mutex:   sync.RWMutex{}, // для явности
 	}, nil
 }
