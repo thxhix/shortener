@@ -3,7 +3,6 @@ package drivers
 import (
 	"context"
 	"database/sql"
-	"errors"
 	_ "github.com/lib/pq"
 	customErrors "github.com/thxhix/shortener/internal/app/errors"
 	"github.com/thxhix/shortener/internal/app/models"
@@ -21,23 +20,19 @@ func (db *PostgresQLDatabase) AddLink(original string, shorten string) (string, 
 	query := `
         INSERT INTO shortener (original, shorten)
         VALUES ($1, $2)
-        ON CONFLICT (original) DO NOTHING
+        ON CONFLICT (original) DO UPDATE
+        SET original = EXCLUDED.original
         RETURNING shorten
     `
 	var insertedShorten string
 	err := db.driver.QueryRowContext(ctx, query, original, shorten).Scan(&insertedShorten)
 	if err != nil {
-		// Если ошибка – вернем уже существующую shorten, как было описано по задаче...
-		if errors.Is(err, sql.ErrNoRows) {
-			err = db.driver.QueryRowContext(ctx,
-				"SELECT shorten FROM shortener WHERE original = $1", original,
-			).Scan(&insertedShorten)
-			if err != nil {
-				return "", err
-			}
-			return insertedShorten, customErrors.ErrDuplicate
-		}
 		return "", err
+	}
+
+	// если insert не произошёл — значит был конфликт, возвращаем ошибку и уже существующий хэш
+	if insertedShorten != shorten {
+		return insertedShorten, customErrors.ErrDuplicate
 	}
 
 	return insertedShorten, nil
