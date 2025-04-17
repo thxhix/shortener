@@ -35,7 +35,7 @@ func (db *PostgresQLDatabase) AddLink(original string, shorten string) (string, 
 			if err != nil {
 				return "", err
 			}
-			return insertedShorten, customErrors.NewDuplicateError()
+			return insertedShorten, customErrors.ErrDuplicate
 		}
 		return "", err
 	}

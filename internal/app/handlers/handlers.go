@@ -150,13 +150,13 @@ func (h *Handler) BatchStoreLink(w http.ResponseWriter, r *http.Request) {
 
 	data, err := h.URLUsecase.BatchShorten(r.Context(), batch)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	result, err := data.MarshalJSON()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
