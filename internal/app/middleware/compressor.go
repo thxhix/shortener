@@ -27,7 +27,7 @@ func CompressorMiddleware(next http.Handler) http.Handler {
 			defer func() {
 				err := compress.Close()
 				if err != nil {
-					log.Fatal("Error defer close: %v", err)
+					log.Fatalf("Error defer close: %v", err)
 				}
 			}()
 
@@ -50,7 +50,7 @@ func CompressorMiddleware(next http.Handler) http.Handler {
 		defer func() {
 			err := gz.Close()
 			if err != nil {
-				log.Fatal("Error defer close: %v", err)
+				log.Fatalf("Error defer close: %v", err)
 			}
 		}()
 

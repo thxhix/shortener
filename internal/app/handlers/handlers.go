@@ -32,7 +32,7 @@ func (h *Handler) StoreLink(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		err := r.Body.Close()
 		if err != nil {
-			log.Fatal("Error closing body: %v", err)
+			log.Fatalf("Error closing body: %v", err)
 		}
 	}()
 	if err != nil || string(targetURL) == "" {
@@ -89,7 +89,7 @@ func (h *Handler) APIStoreLink(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		err := r.Body.Close()
 		if err != nil {
-			log.Fatal("Error closing body: %v", err)
+			log.Fatalf("Error closing body: %v", err)
 		}
 	}()
 	if err != nil {
@@ -148,7 +148,7 @@ func (h *Handler) BatchStoreLink(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		err := r.Body.Close()
 		if err != nil {
-			log.Fatal("Error closing body: %v", err)
+			log.Fatalf("Error closing body: %v", err)
 		}
 	}()
 
