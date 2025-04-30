@@ -4,6 +4,8 @@ package main
 import (
 	"bytes"
 	"github.com/thxhix/shortener/internal/app/database"
+	"go.uber.org/zap"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -20,12 +22,26 @@ var cfg config.Config
 var route *chi.Mux
 
 func TestMain(m *testing.M) {
-	cfg = *config.NewConfig()
+	conf, err := config.NewConfig()
+	if err != nil {
+		log.Fatal(err)
+	}
+	cfg = *conf
+
 	db, err := database.NewDatabase(&cfg)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
-	route = router.NewRouter(&cfg, db)
+
+	logger := zap.NewExample()
+	defer func() {
+		err := logger.Sync()
+		if err != nil {
+			log.Fatal("Error syncing logger", zap.Error(err))
+		}
+	}()
+
+	route = router.NewRouter(&cfg, db, *logger)
 
 	os.Exit(m.Run())
 }

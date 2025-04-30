@@ -19,29 +19,44 @@ type Config struct {
 	PostgresQL string
 }
 
-func NewConfig() *Config {
+func NewConfig() (*Config, error) {
 	cfg := &Config{
 		Address: parser.Address{},
 		BaseURL: parser.BaseURL{},
 	}
 
-	cfg.Address.Set(DefaultAddress)
-	cfg.BaseURL.Set(DefaultBaseURL)
+	err := cfg.Address.Set(DefaultAddress)
+	if err != nil {
+		return nil, err
+	}
+	err = cfg.BaseURL.Set(DefaultBaseURL)
+	if err != nil {
+		return nil, err
+	}
 	//cfg.DBFileName = DefaultDBFileName
 	//cfg.PostgresQL = DefaultPostgresQL
 
 	cfg.ParseFlags()
-	cfg.LoadEnv()
+	err = cfg.LoadEnv()
+	if err != nil {
+		return nil, err
+	}
 
-	return cfg
+	return cfg, nil
 }
 
-func (c *Config) LoadEnv() {
+func (c *Config) LoadEnv() error {
 	if envAddr := os.Getenv("SERVER_ADDRESS"); envAddr != "" {
-		c.Address.Set(envAddr)
+		err := c.Address.Set(envAddr)
+		if err != nil {
+			return err
+		}
 	}
 	if envBase := os.Getenv("BASE_URL"); envBase != "" {
-		c.BaseURL.Set(envBase)
+		err := c.BaseURL.Set(envBase)
+		if err != nil {
+			return err
+		}
 	}
 	if envFile := os.Getenv("FILE_STORAGE_PATH"); envFile != "" {
 		c.DBFileName = envFile
@@ -49,6 +64,7 @@ func (c *Config) LoadEnv() {
 	if envFile := os.Getenv("DATABASE_DSN"); envFile != "" && c.PostgresQL == "" {
 		c.PostgresQL = envFile
 	}
+	return nil
 }
 
 func (c *Config) ParseFlags() {

@@ -1,36 +1,45 @@
 package main
 
 import (
-	"fmt"
 	"github.com/thxhix/shortener/internal/app/config"
 	"github.com/thxhix/shortener/internal/app/database"
 	"github.com/thxhix/shortener/internal/app/database/migrations"
 	r "github.com/thxhix/shortener/internal/app/router"
 	http "github.com/thxhix/shortener/internal/app/server"
-	"os"
+	"go.uber.org/zap"
+	"log"
 )
 
 func main() {
-	cfg := config.NewConfig()
+	cfg, err := config.NewConfig()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	db, err := database.NewDatabase(cfg)
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		log.Fatal(err)
 	}
 
 	// Кривое исполнение, но пока не представляю как работают миграции в Go
 	err = migrations.Migrate(db)
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		log.Fatal(err)
 	}
 
-	router := r.NewRouter(cfg, db)
+	logger := zap.NewExample()
+	defer func() {
+		err := logger.Sync()
+		if err != nil {
+			log.Fatal("Error syncing logger", zap.Error(err))
+		}
+	}()
+
+	router := r.NewRouter(cfg, db, *logger)
 
 	server := http.NewServer(*cfg, *router, db)
 	err = server.StartPooling()
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		log.Fatal(err)
 	}
 }

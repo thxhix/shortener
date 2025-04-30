@@ -10,11 +10,8 @@ import (
 	"go.uber.org/zap"
 )
 
-func NewRouter(cfg *config.Config, db interfaces.Database) *chi.Mux {
+func NewRouter(cfg *config.Config, db interfaces.Database, logger zap.Logger) *chi.Mux {
 	uc := usecase.NewURLUseCase(db, *cfg)
-
-	logger := zap.NewExample()
-	defer logger.Sync()
 
 	router := chi.NewRouter()
 	handlers := handle.NewHandler(cfg, uc)

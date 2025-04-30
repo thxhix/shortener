@@ -6,6 +6,7 @@ import (
 	"github.com/thxhix/shortener/internal/app/models"
 	"github.com/thxhix/shortener/internal/app/usecase"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 
@@ -28,7 +29,12 @@ func NewHandler(cfg *config.Config, useCase usecase.URLUseCaseInterface) *Handle
 
 func (h *Handler) StoreLink(w http.ResponseWriter, r *http.Request) {
 	targetURL, err := io.ReadAll(r.Body)
-	defer r.Body.Close()
+	defer func() {
+		err := r.Body.Close()
+		if err != nil {
+			log.Fatal("Error closing body: %v", err)
+		}
+	}()
 	if err != nil || string(targetURL) == "" {
 		http.Error(w, "не удалось прочитать ссылку из тела запроса", http.StatusBadRequest)
 		return
@@ -80,7 +86,12 @@ func (h *Handler) Redirect(w http.ResponseWriter, r *http.Request) {
 // * Было замечание насчет названия метода, но в итоге не придумал ничего лучше. Кажется итак сойдет..
 func (h *Handler) APIStoreLink(w http.ResponseWriter, r *http.Request) {
 	json, err := io.ReadAll(r.Body)
-	defer r.Body.Close()
+	defer func() {
+		err := r.Body.Close()
+		if err != nil {
+			log.Fatal("Error closing body: %v", err)
+		}
+	}()
 	if err != nil {
 		http.Error(w, "не удалось прочитать ссылку из тела запроса", http.StatusBadRequest)
 		return
@@ -134,7 +145,12 @@ func (h *Handler) BatchStoreLink(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "не удалось прочитать ссылки из тела запроса", http.StatusBadRequest)
 		return
 	}
-	defer r.Body.Close()
+	defer func() {
+		err := r.Body.Close()
+		if err != nil {
+			log.Fatal("Error closing body: %v", err)
+		}
+	}()
 
 	var batch models.BatchShortenRequestList
 

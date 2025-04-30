@@ -6,6 +6,7 @@ import (
 	_ "github.com/lib/pq"
 	customErrors "github.com/thxhix/shortener/internal/app/errors"
 	"github.com/thxhix/shortener/internal/app/models"
+	"log"
 	"time"
 )
 
@@ -38,23 +39,35 @@ func (db *PostgresQLDatabase) AddLink(original string, shorten string) (string, 
 	return insertedShorten, nil
 }
 
-func (db *PostgresQLDatabase) AddLinks(ctx context.Context, list models.DBShortenRowList) error {
+func (db *PostgresQLDatabase) AddLinks(ctx context.Context, list models.DBShortenRowList) (err error) {
 	tx, err := db.driver.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
 
-	defer tx.Rollback()
+	defer func() {
+		// Только если была ошибка вне defer
+		if err != nil {
+			if RBError := tx.Rollback(); RBError != nil {
+				log.Printf("ошибка при rollback: %v", RBError)
+			}
+		}
+	}()
 
 	stmt, err := tx.PrepareContext(ctx, "INSERT INTO shortener (original, shorten) VALUES($1, $2)")
 
 	if err != nil {
 		return err
 	}
-	defer stmt.Close()
+	defer func() {
+		// Подменяем только если основной ошибки не было
+		if CErr := stmt.Close(); CErr != nil && err == nil {
+			err = CErr
+		}
+	}()
 
 	for _, row := range list {
-		_, err := stmt.ExecContext(ctx, row.URL, row.Hash)
+		_, err = stmt.ExecContext(ctx, row.URL, row.Hash)
 		if err != nil {
 			return err
 		}
@@ -65,7 +78,7 @@ func (db *PostgresQLDatabase) AddLinks(ctx context.Context, list models.DBShorte
 		return err
 	}
 
-	return nil
+	return
 }
 
 func (db *PostgresQLDatabase) GetFullLink(hash string) (string, error) {
