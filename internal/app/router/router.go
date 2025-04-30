@@ -10,7 +10,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func NewRouter(cfg *config.Config, db interfaces.Database, logger zap.Logger) *chi.Mux {
+func NewRouter(cfg *config.Config, db interfaces.Database, logger *zap.SugaredLogger) *chi.Mux {
 	uc := usecase.NewURLUseCase(db, *cfg)
 
 	router := chi.NewRouter()
@@ -18,7 +18,7 @@ func NewRouter(cfg *config.Config, db interfaces.Database, logger zap.Logger) *c
 
 	router.Route("/", func(r chi.Router) {
 		// Кидаем на группу мидлвару с логами
-		r.Use(middleware.WithLogging(logger.Sugar()))
+		r.Use(middleware.WithLogging(logger))
 		r.Use(middleware.CompressorMiddleware)
 
 		r.Post("/", handlers.StoreLink)

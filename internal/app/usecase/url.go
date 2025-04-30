@@ -67,7 +67,7 @@ func (u *URLUseCase) BatchShorten(ctx context.Context, list models.BatchShortenR
 
 		responseRow := models.BatchShortenResponse{
 			ID:   batch.ID,
-			Hash: u.cfg.BaseURL.String() + "/" + row.Hash,
+			Hash: u.cfg.BaseURL + "/" + row.Hash,
 		}
 		response = append(response, responseRow)
 	}

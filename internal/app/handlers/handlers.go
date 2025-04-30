@@ -63,7 +63,7 @@ func (h *Handler) StoreLink(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusConflict)
 	}
 
-	_, err = io.WriteString(w, h.config.BaseURL.String()+"/"+link)
+	_, err = io.WriteString(w, h.config.BaseURL+"/"+link)
 	if err != nil {
 		http.Error(w, "не удалось записать ответ", http.StatusInternalServerError)
 		return
@@ -116,7 +116,7 @@ func (h *Handler) APIStoreLink(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	link = h.config.BaseURL.String() + "/" + link
+	link = h.config.BaseURL + "/" + link
 
 	shortURL := models.ShortURL{Result: link}
 	result, err := easyjson.Marshal(shortURL)

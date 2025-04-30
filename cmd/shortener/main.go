@@ -27,17 +27,17 @@ func main() {
 		log.Fatal(err)
 	}
 
-	logger := zap.NewExample()
+	zapLogger := zap.NewExample()
 	defer func() {
-		err := logger.Sync()
+		err := zapLogger.Sync()
 		if err != nil {
 			log.Fatal("Error syncing logger", zap.Error(err))
 		}
 	}()
 
-	router := r.NewRouter(cfg, db, *logger)
+	router := r.NewRouter(cfg, db, zapLogger.Sugar())
 
-	server := http.NewServer(*cfg, *router, db)
+	server := http.NewServer(*cfg, *router, db, zapLogger.Sugar())
 	err = server.StartPooling()
 	if err != nil {
 		log.Fatal(err)

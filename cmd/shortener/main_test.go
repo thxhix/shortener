@@ -33,15 +33,15 @@ func TestMain(m *testing.M) {
 		log.Fatal(err)
 	}
 
-	logger := zap.NewExample()
+	zapLogger := zap.NewExample()
 	defer func() {
-		err := logger.Sync()
+		err := zapLogger.Sync()
 		if err != nil {
 			log.Fatal("Error syncing logger", zap.Error(err))
 		}
 	}()
 
-	route = router.NewRouter(&cfg, db, *logger)
+	route = router.NewRouter(&cfg, db, zapLogger.Sugar())
 
 	os.Exit(m.Run())
 }
