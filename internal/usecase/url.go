@@ -3,10 +3,10 @@ package usecase
 import (
 	"context"
 	"errors"
-	"github.com/thxhix/shortener/internal/app/config"
-	"github.com/thxhix/shortener/internal/app/database/interfaces"
-	customErrors "github.com/thxhix/shortener/internal/app/errors"
-	"github.com/thxhix/shortener/internal/app/models"
+	"github.com/thxhix/shortener/internal/config"
+	"github.com/thxhix/shortener/internal/database/interfaces"
+	customErrors "github.com/thxhix/shortener/internal/errors"
+	"github.com/thxhix/shortener/internal/models"
 )
 
 type URLUseCaseInterface interface {

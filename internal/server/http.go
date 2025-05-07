@@ -2,11 +2,10 @@ package server
 
 import (
 	"github.com/go-chi/chi/v5"
-	"github.com/thxhix/shortener/internal/app/database/interfaces"
+	"github.com/thxhix/shortener/internal/config"
+	"github.com/thxhix/shortener/internal/database/interfaces"
 	"go.uber.org/zap"
 	"net/http"
-
-	"github.com/thxhix/shortener/internal/app/config"
 )
 
 type ServerInterface interface {

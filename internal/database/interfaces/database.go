@@ -3,7 +3,7 @@ package interfaces
 import (
 	"context"
 	"database/sql"
-	"github.com/thxhix/shortener/internal/app/models"
+	"github.com/thxhix/shortener/internal/models"
 )
 
 type Database interface {

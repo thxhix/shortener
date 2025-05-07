@@ -4,8 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	customErrors "github.com/thxhix/shortener/internal/app/errors"
-	"github.com/thxhix/shortener/internal/app/models"
+	customErrors "github.com/thxhix/shortener/internal/errors"
+	"github.com/thxhix/shortener/internal/models"
 	"sync"
 )
 

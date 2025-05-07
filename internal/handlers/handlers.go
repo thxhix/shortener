@@ -2,9 +2,10 @@ package handlers
 
 import (
 	"errors"
-	custorErrors "github.com/thxhix/shortener/internal/app/errors"
-	"github.com/thxhix/shortener/internal/app/models"
-	"github.com/thxhix/shortener/internal/app/usecase"
+	"github.com/thxhix/shortener/internal/config"
+	custorErrors "github.com/thxhix/shortener/internal/errors"
+	"github.com/thxhix/shortener/internal/models"
+	"github.com/thxhix/shortener/internal/usecase"
 	"io"
 	"log"
 	"net/http"
@@ -12,7 +13,6 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/mailru/easyjson"
-	"github.com/thxhix/shortener/internal/app/config"
 )
 
 type Handler struct {

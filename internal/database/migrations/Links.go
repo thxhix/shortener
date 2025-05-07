@@ -1,7 +1,7 @@
 package migrations
 
 import (
-	"github.com/thxhix/shortener/internal/app/database/interfaces"
+	"github.com/thxhix/shortener/internal/database/interfaces"
 )
 
 func Migrate(db interfaces.Database) error {

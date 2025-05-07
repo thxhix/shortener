@@ -6,8 +6,8 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
-	"github.com/thxhix/shortener/internal/app/database/interfaces"
-	"github.com/thxhix/shortener/internal/app/models"
+	"github.com/thxhix/shortener/internal/database/interfaces"
+	"github.com/thxhix/shortener/internal/models"
 	"os"
 )
 

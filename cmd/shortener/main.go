@@ -1,11 +1,11 @@
 package main
 
 import (
-	"github.com/thxhix/shortener/internal/app/config"
-	"github.com/thxhix/shortener/internal/app/database"
-	"github.com/thxhix/shortener/internal/app/database/migrations"
-	r "github.com/thxhix/shortener/internal/app/router"
-	http "github.com/thxhix/shortener/internal/app/server"
+	"github.com/thxhix/shortener/internal/config"
+	"github.com/thxhix/shortener/internal/database"
+	"github.com/thxhix/shortener/internal/database/migrations"
+	r "github.com/thxhix/shortener/internal/router"
+	http "github.com/thxhix/shortener/internal/server"
 	"go.uber.org/zap"
 	"log"
 )

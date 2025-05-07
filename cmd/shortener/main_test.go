@@ -3,7 +3,9 @@ package main
 
 import (
 	"bytes"
-	"github.com/thxhix/shortener/internal/app/database"
+	"github.com/thxhix/shortener/internal/config"
+	"github.com/thxhix/shortener/internal/database"
+	"github.com/thxhix/shortener/internal/router"
 	"go.uber.org/zap"
 	"log"
 	"net/http"
@@ -14,8 +16,6 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/require"
-	"github.com/thxhix/shortener/internal/app/config"
-	"github.com/thxhix/shortener/internal/app/router"
 )
 
 var cfg config.Config
