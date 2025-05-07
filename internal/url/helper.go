@@ -1,4 +1,4 @@
-package usecase
+package url
 
 import (
 	"crypto/sha256"

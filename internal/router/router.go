@@ -6,12 +6,12 @@ import (
 	"github.com/thxhix/shortener/internal/database/interfaces"
 	handle "github.com/thxhix/shortener/internal/handlers"
 	middleware2 "github.com/thxhix/shortener/internal/middleware"
-	"github.com/thxhix/shortener/internal/usecase"
+	"github.com/thxhix/shortener/internal/url"
 	"go.uber.org/zap"
 )
 
 func NewRouter(cfg *config.Config, db interfaces.Database, logger *zap.SugaredLogger) *chi.Mux {
-	uc := usecase.NewURLUseCase(db, *cfg)
+	uc := url.NewURLUseCase(db, *cfg)
 
 	router := chi.NewRouter()
 	handlers := handle.NewHandler(cfg, uc)

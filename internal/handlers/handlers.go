@@ -1,11 +1,11 @@
 package handlers
 
 import (
+	"context"
 	"errors"
 	"github.com/thxhix/shortener/internal/config"
 	custorErrors "github.com/thxhix/shortener/internal/errors"
 	"github.com/thxhix/shortener/internal/models"
-	"github.com/thxhix/shortener/internal/usecase"
 	"io"
 	"log"
 	"net/http"
@@ -15,12 +15,19 @@ import (
 	"github.com/mailru/easyjson"
 )
 
-type Handler struct {
-	config     config.Config
-	URLUsecase usecase.URLUseCaseInterface
+type URLUseCaseInterface interface {
+	Shorten(url string) (string, error)
+	GetFullURL(url string) (string, error)
+	PingDB() error
+	BatchShorten(ctx context.Context, list models.BatchShortenRequestList) (models.BatchShortenResponseList, error)
 }
 
-func NewHandler(cfg *config.Config, useCase usecase.URLUseCaseInterface) *Handler {
+type Handler struct {
+	config     config.Config
+	URLUsecase URLUseCaseInterface
+}
+
+func NewHandler(cfg *config.Config, useCase URLUseCaseInterface) *Handler {
 	return &Handler{
 		config:     *cfg,
 		URLUsecase: useCase,

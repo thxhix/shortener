@@ -1,4 +1,4 @@
-package usecase
+package url
 
 import (
 	"context"
@@ -8,13 +8,6 @@ import (
 	customErrors "github.com/thxhix/shortener/internal/errors"
 	"github.com/thxhix/shortener/internal/models"
 )
-
-type URLUseCaseInterface interface {
-	Shorten(url string) (string, error)
-	GetFullURL(url string) (string, error)
-	PingDB() error
-	BatchShorten(ctx context.Context, list models.BatchShortenRequestList) (models.BatchShortenResponseList, error)
-}
 
 type URLUseCase struct {
 	database interfaces.Database
