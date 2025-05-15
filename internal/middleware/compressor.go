@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"compress/gzip"
+	"log"
 	"net/http"
 	"strings"
 )
@@ -23,7 +24,12 @@ func CompressorMiddleware(next http.Handler) http.Handler {
 				http.Error(w, "не удалось разжать gzip", http.StatusBadRequest)
 				return
 			}
-			defer compress.Close()
+			defer func() {
+				err := compress.Close()
+				if err != nil {
+					log.Fatalf("Error defer close: %v", err)
+				}
+			}()
 
 			r.Body = compress
 		}
@@ -41,7 +47,12 @@ func CompressorMiddleware(next http.Handler) http.Handler {
 		}
 
 		gz := gzip.NewWriter(w)
-		defer gz.Close()
+		defer func() {
+			err := gz.Close()
+			if err != nil {
+				log.Fatalf("Error defer close: %v", err)
+			}
+		}()
 
 		w.Header().Set("Content-Encoding", "gzip")
 		wrw := compressedResponseWriter{Writer: gz, ResponseWriter: w}

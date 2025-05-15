@@ -3,7 +3,11 @@ package main
 
 import (
 	"bytes"
-	"github.com/thxhix/shortener/internal/app/database"
+	"github.com/thxhix/shortener/internal/config"
+	"github.com/thxhix/shortener/internal/database"
+	"github.com/thxhix/shortener/internal/router"
+	"go.uber.org/zap"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -12,20 +16,32 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/require"
-	"github.com/thxhix/shortener/internal/app/config"
-	"github.com/thxhix/shortener/internal/app/router"
 )
 
 var cfg config.Config
-var r *chi.Mux
+var route *chi.Mux
 
 func TestMain(m *testing.M) {
-	cfg = *config.NewConfig()
-	db, err := database.NewDatabase(cfg.DBFileName)
+	conf, err := config.NewConfig()
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
-	r = router.NewRouter(&cfg, db)
+	cfg = *conf
+
+	db, err := database.NewDatabase(&cfg)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	zapLogger := zap.NewExample()
+	defer func() {
+		err := zapLogger.Sync()
+		if err != nil {
+			log.Fatal("Error syncing logger", zap.Error(err))
+		}
+	}()
+
+	route = router.NewRouter(&cfg, db, zapLogger.Sugar())
 
 	os.Exit(m.Run())
 }
@@ -76,7 +92,7 @@ func Test_shortLink(t *testing.T) {
 			}
 			w := httptest.NewRecorder()
 
-			r.ServeHTTP(w, req)
+			route.ServeHTTP(w, req)
 
 			require.Equal(t, tt.want.statusCode, w.Code, "Код ответа не совпадает с ожидаемым")
 		})
@@ -124,7 +140,7 @@ func Test_getFullLink(t *testing.T) {
 			}
 			w := httptest.NewRecorder()
 
-			r.ServeHTTP(w, req)
+			route.ServeHTTP(w, req)
 
 			require.Equal(t, tt.want.statusCode, w.Code, "Код ответа не совпадает с ожидаемым")
 			require.Equal(t, tt.want.header, w.Header().Get("Location"), "Header Location не совпадает с ожидаемым")
@@ -170,7 +186,77 @@ func Test_APIStoreLink(t *testing.T) {
 			}
 			w := httptest.NewRecorder()
 
-			r.ServeHTTP(w, req)
+			route.ServeHTTP(w, req)
+
+			require.Equal(t, tt.want.statusCode, w.Code, "Код ответа не совпадает с ожидаемым")
+			require.Equal(t, tt.want.contentType, w.Header().Get("Content-Type"), "Content-Type ответа не совпадает с ожидаемым")
+		})
+	}
+}
+
+func Test_BatchStoreLink(t *testing.T) {
+	type want struct {
+		contentType  string
+		statusCode   int
+		jsonResponse string
+	}
+
+	tests := []struct {
+		name        string
+		action      string
+		method      string
+		body        string
+		contentType string
+		want        want
+	}{
+		{
+			name:        "Batch store request",
+			action:      "/api/shorten/batch",
+			method:      http.MethodPost,
+			body:        "[\n    {\n        \"correlation_id\": \"333\",\n        \"original_url\": \"https://ya.ru\"\n    },\n    {\n        \"correlation_id\": \"111\",\n        \"original_url\": \"https://google.com\"\n    }\n]",
+			contentType: "application/json",
+
+			want: want{
+				contentType:  "application/json",
+				statusCode:   http.StatusCreated,
+				jsonResponse: "[\n    {\n        \"correlation_id\": \"testHash\",\n        \"original_url\": \"https://ya.ru\"\n    },\n    {\n        \"correlation_id\": \"testHash\",\n        \"original_url\": \"https://google.com\"\n    }\n]",
+			},
+		},
+		{
+			name:        "Empty batch store request",
+			action:      "/api/shorten/batch",
+			method:      http.MethodPost,
+			body:        "[]",
+			contentType: "application/json",
+
+			want: want{
+				contentType: "text/plain; charset=utf-8",
+				statusCode:  http.StatusBadRequest,
+			},
+		},
+		{
+			name:        "Not JSON batch store request",
+			action:      "/api/shorten/batch",
+			method:      http.MethodPost,
+			body:        "",
+			contentType: "application/json",
+
+			want: want{
+				contentType: "text/plain; charset=utf-8",
+				statusCode:  http.StatusBadRequest,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req, err := http.NewRequest(tt.method, tt.action, strings.NewReader(tt.body))
+			if err != nil {
+				panic(err)
+			}
+			w := httptest.NewRecorder()
+
+			route.ServeHTTP(w, req)
 
 			require.Equal(t, tt.want.statusCode, w.Code, "Код ответа не совпадает с ожидаемым")
 			require.Equal(t, tt.want.contentType, w.Header().Get("Content-Type"), "Content-Type ответа не совпадает с ожидаемым")

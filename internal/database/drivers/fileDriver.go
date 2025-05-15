@@ -1,30 +1,22 @@
-package database
+package drivers
 
 import (
 	"bufio"
+	"context"
+	"database/sql"
 	"encoding/json"
 	"errors"
+	"github.com/thxhix/shortener/internal/database/interfaces"
+	"github.com/thxhix/shortener/internal/models"
 	"os"
 )
-
-type Database interface {
-	AddLink(original string, shorten string) (string, error)
-	GetFullLink(hash string) (string, error)
-	Close() error
-}
 
 type FileDatabase struct {
 	file    *os.File
 	encoder *json.Encoder
 }
 
-type LinkRow struct {
-	UUID int    `json:"uuid"`
-	Hash string `json:"hash"`
-	URL  string `json:"url"`
-}
-
-func NewDatabase(filePath string) (Database, error) {
+func NewFileDatabase(filePath string) (interfaces.Database, error) {
 	file, err := os.OpenFile(filePath, os.O_RDWR|os.O_CREATE, 0666)
 	if err != nil {
 		return nil, err
@@ -40,7 +32,7 @@ func (db *FileDatabase) Close() error {
 	return db.file.Close()
 }
 
-func (db *FileDatabase) WriteRow(row *LinkRow) error {
+func (db *FileDatabase) WriteRow(row *models.DBShortenRow) error {
 	err := db.encoder.Encode(row)
 	if err != nil {
 		return err
@@ -48,7 +40,7 @@ func (db *FileDatabase) WriteRow(row *LinkRow) error {
 	return db.file.Sync()
 }
 
-func (db *FileDatabase) FindByHash(hash string) (*LinkRow, error) {
+func (db *FileDatabase) FindByHash(hash string) (*models.DBShortenRow, error) {
 	_, err := db.file.Seek(0, 0)
 	if err != nil {
 		return nil, err
@@ -56,7 +48,7 @@ func (db *FileDatabase) FindByHash(hash string) (*LinkRow, error) {
 
 	scanner := bufio.NewScanner(db.file)
 	for scanner.Scan() {
-		var row LinkRow
+		var row models.DBShortenRow
 		err := json.Unmarshal(scanner.Bytes(), &row)
 		if err != nil {
 			continue
@@ -83,10 +75,10 @@ func (db *FileDatabase) getLastUUID() (int, error) {
 	var lastUUID int
 
 	for scanner.Scan() {
-		var row LinkRow
+		var row models.DBShortenRow
 		err := json.Unmarshal(scanner.Bytes(), &row)
 		if err == nil {
-			lastUUID = row.UUID
+			lastUUID = row.ID
 		}
 	}
 
@@ -105,8 +97,8 @@ func (db *FileDatabase) AddLink(original string, shorten string) (string, error)
 
 	newID := lastID + 1
 
-	err = db.WriteRow(&LinkRow{
-		UUID: newID,
+	err = db.WriteRow(&models.DBShortenRow{
+		ID:   newID,
 		Hash: shorten,
 		URL:  original,
 	})
@@ -116,6 +108,25 @@ func (db *FileDatabase) AddLink(original string, shorten string) (string, error)
 	return shorten, nil
 }
 
+func (db *FileDatabase) AddLinks(ctx context.Context, list models.DBShortenRowList) error {
+	for _, link := range list {
+		lastID, err := db.getLastUUID()
+		if err != nil {
+			return err
+		}
+
+		link.ID = lastID + 1
+
+		err = db.WriteRow(&link)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (db *FileDatabase) GetFullLink(hash string) (string, error) {
 	byHash, err := db.FindByHash(hash)
 	if err != nil {
@@ -123,3 +134,9 @@ func (db *FileDatabase) GetFullLink(hash string) (string, error) {
 	}
 	return byHash.URL, nil
 }
+
+func (db *FileDatabase) PingConnection() error {
+	return nil
+}
+
+func (db *FileDatabase) GetDriver() *sql.DB { return nil }
