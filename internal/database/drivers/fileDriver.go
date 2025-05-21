@@ -65,6 +65,33 @@ func (db *FileDatabase) FindByHash(hash string) (*models.DBShortenRow, error) {
 	return nil, errors.New("запись не найдена")
 }
 
+func (db *FileDatabase) FindByUserID(userID string) (models.DBShortenRowList, error) {
+	result := models.DBShortenRowList{}
+
+	_, err := db.file.Seek(0, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	scanner := bufio.NewScanner(db.file)
+	for scanner.Scan() {
+		var row models.DBShortenRow
+		err := json.Unmarshal(scanner.Bytes(), &row)
+		if err != nil {
+			continue
+		}
+
+		if row.UserID == userID {
+			result = append(result, row)
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
 func (db *FileDatabase) getLastUUID() (int, error) {
 	_, err := db.file.Seek(0, 0)
 	if err != nil {
@@ -109,7 +136,7 @@ func (db *FileDatabase) AddLink(original string, shorten string, userID string) 
 	return shorten, nil
 }
 
-func (db *FileDatabase) AddLinks(ctx context.Context, list models.DBShortenRowList, userId string) error {
+func (db *FileDatabase) AddLinks(ctx context.Context, list models.DBShortenRowList, userID string) error {
 	for _, link := range list {
 		lastID, err := db.getLastUUID()
 		if err != nil {
@@ -117,7 +144,7 @@ func (db *FileDatabase) AddLinks(ctx context.Context, list models.DBShortenRowLi
 		}
 
 		link.ID = lastID + 1
-		link.UserID = userId
+		link.UserID = userID
 
 		err = db.WriteRow(&link)
 
@@ -135,6 +162,10 @@ func (db *FileDatabase) GetFullLink(hash string) (string, error) {
 		return "", err
 	}
 	return byHash.URL, nil
+}
+
+func (db *FileDatabase) GetUserFullLinks(userID string) (models.DBShortenRowList, error) {
+	return db.FindByUserID(userID)
 }
 
 func (db *FileDatabase) PingConnection() error {

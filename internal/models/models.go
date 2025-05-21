@@ -44,3 +44,11 @@ type BatchShortenResponse struct {
 	ID   string `json:"correlation_id"`
 	Hash string `json:"short_url"`
 }
+
+//easyjson:json
+type UserLinksResponseList []UserLinksResponse
+
+type UserLinksResponse struct {
+	Short    string `json:"short_url"`
+	Original string `json:"original_url"`
+}

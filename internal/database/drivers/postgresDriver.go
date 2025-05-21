@@ -39,7 +39,7 @@ func (db *PostgresQLDatabase) AddLink(original string, shorten string, userID st
 	return insertedShorten, nil
 }
 
-func (db *PostgresQLDatabase) AddLinks(ctx context.Context, list models.DBShortenRowList, userId string) (err error) {
+func (db *PostgresQLDatabase) AddLinks(ctx context.Context, list models.DBShortenRowList, userID string) (err error) {
 	tx, err := db.driver.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -67,7 +67,7 @@ func (db *PostgresQLDatabase) AddLinks(ctx context.Context, list models.DBShorte
 	}()
 
 	for _, row := range list {
-		_, err = stmt.ExecContext(ctx, row.URL, row.Hash, userId)
+		_, err = stmt.ExecContext(ctx, row.URL, row.Hash, userID)
 		if err != nil {
 			return err
 		}
@@ -114,6 +114,37 @@ func (db *PostgresQLDatabase) PingConnection() error {
 }
 
 func (db *PostgresQLDatabase) GetDriver() *sql.DB { return db.driver }
+
+func (db *PostgresQLDatabase) GetUserFullLinks(userID string) (models.DBShortenRowList, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	query := `SELECT * FROM shortener WHERE user_id = $1`
+
+	rows, err := db.driver.QueryContext(ctx, query, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var results models.DBShortenRowList
+
+	for rows.Next() {
+		var row models.DBShortenRow
+		err := rows.Scan(&row.ID, &row.URL, &row.Hash, &row.Time)
+		if err != nil {
+			return nil, err
+		}
+		results = append(results, row)
+	}
+
+	// проверка на ошибки сканирования после Next
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return results, nil
+}
 
 func NewPQLDatabase(params string) (*PostgresQLDatabase, error) {
 	db, err := sql.Open("postgres", params)

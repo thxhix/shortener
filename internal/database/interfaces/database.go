@@ -10,6 +10,7 @@ type Database interface {
 	AddLink(original string, shorten string, userID string) (string, error)
 	AddLinks(ctx context.Context, list models.DBShortenRowList, userID string) error
 	GetFullLink(hash string) (string, error)
+	GetUserFullLinks(userID string) (models.DBShortenRowList, error)
 	Close() error
 	PingConnection() error
 	GetDriver() *sql.DB

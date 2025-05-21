@@ -25,7 +25,7 @@ func (db *MemoryDatabase) AddLink(original string, shorten string, userID string
 	return shorten, nil
 }
 
-func (db *MemoryDatabase) AddLinks(ctx context.Context, list models.DBShortenRowList, userId string) error {
+func (db *MemoryDatabase) AddLinks(ctx context.Context, list models.DBShortenRowList, userID string) error {
 	db.mutex.Lock()
 	defer db.mutex.Unlock()
 
@@ -60,6 +60,10 @@ func (db *MemoryDatabase) PingConnection() error {
 
 func (db *MemoryDatabase) GetDriver() *sql.DB {
 	return nil
+}
+
+func (db *MemoryDatabase) GetUserFullLinks(userID string) (models.DBShortenRowList, error) {
+	return nil, nil
 }
 
 func NewMemoryDatabase() (*MemoryDatabase, error) {

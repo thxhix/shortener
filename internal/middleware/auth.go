@@ -18,18 +18,16 @@ const (
 	UserIDKey  = "user_id"
 )
 
-func WithAuth() func(http.Handler) http.Handler {
+func CheckAuth() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			cookie, err := r.Cookie(cookieName)
 
-			// Если токен-кука есть – пилим ее на userID и secretKey
 			if err == nil {
+				// Если токен-кука есть – пилим ее на userID и secretKey
 				parts := strings.Split(cookie.Value, separator)
-
 				userID := parts[0]
 				signature := parts[1]
-
 				// Проверяем secretKey
 				if len(parts) == 2 && verifyToken(userID, signature) {
 					ctx := context.WithValue(r.Context(), UserIDKey, userID)
@@ -38,22 +36,32 @@ func WithAuth() func(http.Handler) http.Handler {
 					return
 				}
 			}
+			// Если нет куки или она невалидна — продолжаем БЕЗ userID
+			next.ServeHTTP(w, r)
+		})
+	}
+}
 
+func SetAuth() func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// ИЛИ если secretKey "левый" — создаём новый и пихаем в ответ
+			if GetUserID(r.Context()) == "" {
+				userID := uuid.NewString()
+				signature := generateToken(userID)
+				token := userID + separator + signature
 
-			userID := uuid.NewString()
-			signature := generateToken(userID)
-			token := userID + separator + signature
+				http.SetCookie(w, &http.Cookie{
+					Name:  cookieName,
+					Value: token,
+					Path:  "/",
+				})
 
-			http.SetCookie(w, &http.Cookie{
-				Name:  cookieName,
-				Value: token,
-				Path:  "/",
-			})
-
-			ctx := context.WithValue(r.Context(), UserIDKey, userID)
-
-			next.ServeHTTP(w, r.WithContext(ctx))
+				ctx := context.WithValue(r.Context(), UserIDKey, userID)
+				next.ServeHTTP(w, r.WithContext(ctx))
+				return
+			}
+			next.ServeHTTP(w, r)
 		})
 	}
 }

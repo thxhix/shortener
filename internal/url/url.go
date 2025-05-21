@@ -15,6 +15,7 @@ type URLUseCaseInterface interface {
 	GetFullURL(url string) (string, error)
 	PingDB() error
 	BatchShorten(ctx context.Context, list models.BatchShortenRequestList) (models.BatchShortenResponseList, error)
+	UserList(userID string) (models.UserLinksResponseList, error)
 }
 
 type URLUseCase struct {
@@ -79,4 +80,23 @@ func (u *URLUseCase) BatchShorten(ctx context.Context, list models.BatchShortenR
 	}
 
 	return response, nil
+}
+
+func (u *URLUseCase) UserList(userID string) (models.UserLinksResponseList, error) {
+	links, err := u.database.GetUserFullLinks(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	result := models.UserLinksResponseList{}
+
+	for _, link := range links {
+		row := models.UserLinksResponse{
+			Original: link.URL,
+			Short:    link.Hash,
+		}
+		result = append(result, row)
+	}
+
+	return result, nil
 }

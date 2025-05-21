@@ -20,14 +20,20 @@ func NewRouter(cfg *config.Config, db interfaces.Database, logger *zap.SugaredLo
 		// Кидаем на группу мидлвару с логами
 		r.Use(middleware.WithLogging(logger))
 		r.Use(middleware.CompressorMiddleware)
-		r.Use(middleware.WithAuth())
 
 		r.Post("/", handlers.StoreLink)
 		r.Get("/{id}", handlers.Redirect)
 		r.Get("/ping", handlers.PingDatabase)
 
 		r.Route("/api", func(r chi.Router) {
+			r.Use(middleware.CheckAuth())
+
+			r.Route("/user", func(r chi.Router) {
+				r.Post("/urls", handlers.UserList)
+			})
+
 			r.Route("/shorten", func(r chi.Router) {
+				r.Use(middleware.SetAuth())
 				r.Post("/", handlers.APIStoreLink)
 				r.Post("/batch", handlers.BatchStoreLink)
 			})

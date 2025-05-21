@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/thxhix/shortener/internal/config"
 	custorErrors "github.com/thxhix/shortener/internal/errors"
+	"github.com/thxhix/shortener/internal/middleware"
 	"github.com/thxhix/shortener/internal/models"
 	urlUseCase "github.com/thxhix/shortener/internal/url"
 	"io"
@@ -193,4 +194,38 @@ func (h *Handler) PingDatabase(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusOK)
+}
+
+func (h *Handler) UserList(w http.ResponseWriter, r *http.Request) {
+	userID := middleware.GetUserID(r.Context())
+
+	if userID == "" {
+		http.Error(w, "неверный данные авторизации..", http.StatusUnauthorized)
+		return
+	}
+
+	links, err := h.URLUsecase.UserList(middleware.GetUserID(r.Context()))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if len(links) == 0 {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+
+	result, err := links.MarshalJSON()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+
+	_, err = w.Write(result)
+	if err != nil {
+		log.Printf("ошибка при записи ответа: %v", err)
+		return
+	}
 }
