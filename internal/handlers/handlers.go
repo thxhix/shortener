@@ -1,11 +1,11 @@
 package handlers
 
 import (
-	"context"
 	"errors"
 	"github.com/thxhix/shortener/internal/config"
 	custorErrors "github.com/thxhix/shortener/internal/errors"
 	"github.com/thxhix/shortener/internal/models"
+	urlUseCase "github.com/thxhix/shortener/internal/url"
 	"io"
 	"log"
 	"net/http"
@@ -15,19 +15,12 @@ import (
 	"github.com/mailru/easyjson"
 )
 
-type URLUseCaseInterface interface {
-	Shorten(url string) (string, error)
-	GetFullURL(url string) (string, error)
-	PingDB() error
-	BatchShorten(ctx context.Context, list models.BatchShortenRequestList) (models.BatchShortenResponseList, error)
-}
-
 type Handler struct {
 	config     config.Config
-	URLUsecase URLUseCaseInterface
+	URLUsecase urlUseCase.URLUseCaseInterface
 }
 
-func NewHandler(cfg *config.Config, useCase URLUseCaseInterface) *Handler {
+func NewHandler(cfg *config.Config, useCase urlUseCase.URLUseCaseInterface) *Handler {
 	return &Handler{
 		config:     *cfg,
 		URLUsecase: useCase,
@@ -53,7 +46,7 @@ func (h *Handler) StoreLink(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var isConflict = false
-	link, err := h.URLUsecase.Shorten(parsedURL.String())
+	link, err := h.URLUsecase.Shorten(r.Context(), parsedURL.String())
 	if err != nil {
 		if errors.Is(err, custorErrors.ErrDuplicate) {
 			isConflict = true
@@ -113,7 +106,7 @@ func (h *Handler) APIStoreLink(w http.ResponseWriter, r *http.Request) {
 
 	var isConflict = false
 
-	link, err := h.URLUsecase.Shorten(fullURL.URL)
+	link, err := h.URLUsecase.Shorten(r.Context(), fullURL.URL)
 	if err != nil {
 		if errors.Is(err, custorErrors.ErrDuplicate) {
 			isConflict = true

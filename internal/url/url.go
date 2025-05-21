@@ -6,8 +6,16 @@ import (
 	"github.com/thxhix/shortener/internal/config"
 	"github.com/thxhix/shortener/internal/database/interfaces"
 	customErrors "github.com/thxhix/shortener/internal/errors"
+	"github.com/thxhix/shortener/internal/middleware"
 	"github.com/thxhix/shortener/internal/models"
 )
+
+type URLUseCaseInterface interface {
+	Shorten(ctx context.Context, url string) (string, error)
+	GetFullURL(url string) (string, error)
+	PingDB() error
+	BatchShorten(ctx context.Context, list models.BatchShortenRequestList) (models.BatchShortenResponseList, error)
+}
 
 type URLUseCase struct {
 	database interfaces.Database
@@ -21,9 +29,9 @@ func NewURLUseCase(db interfaces.Database, cfg config.Config) *URLUseCase {
 	}
 }
 
-func (u *URLUseCase) Shorten(originalURL string) (string, error) {
+func (u *URLUseCase) Shorten(ctx context.Context, originalURL string) (string, error) {
 	shorten := GetHash()
-	shorten, err := u.database.AddLink(originalURL, shorten)
+	shorten, err := u.database.AddLink(originalURL, shorten, middleware.GetUserID(ctx))
 	if err != nil {
 		if errors.Is(err, customErrors.ErrDuplicate) {
 			return shorten, customErrors.ErrDuplicate
@@ -65,7 +73,7 @@ func (u *URLUseCase) BatchShorten(ctx context.Context, list models.BatchShortenR
 		response = append(response, responseRow)
 	}
 
-	err := u.database.AddLinks(ctx, result)
+	err := u.database.AddLinks(ctx, result, middleware.GetUserID(ctx))
 	if err != nil {
 		return nil, err
 	}

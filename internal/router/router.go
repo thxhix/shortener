@@ -5,7 +5,7 @@ import (
 	"github.com/thxhix/shortener/internal/config"
 	"github.com/thxhix/shortener/internal/database/interfaces"
 	handle "github.com/thxhix/shortener/internal/handlers"
-	middleware2 "github.com/thxhix/shortener/internal/middleware"
+	"github.com/thxhix/shortener/internal/middleware"
 	"github.com/thxhix/shortener/internal/url"
 	"go.uber.org/zap"
 )
@@ -18,8 +18,9 @@ func NewRouter(cfg *config.Config, db interfaces.Database, logger *zap.SugaredLo
 
 	router.Route("/", func(r chi.Router) {
 		// Кидаем на группу мидлвару с логами
-		r.Use(middleware2.WithLogging(logger))
-		r.Use(middleware2.CompressorMiddleware)
+		r.Use(middleware.WithLogging(logger))
+		r.Use(middleware.CompressorMiddleware)
+		r.Use(middleware.WithAuth())
 
 		r.Post("/", handlers.StoreLink)
 		r.Get("/{id}", handlers.Redirect)

@@ -14,7 +14,7 @@ type MemoryDatabase struct {
 	mutex   sync.RWMutex
 }
 
-func (db *MemoryDatabase) AddLink(original string, shorten string) (string, error) {
+func (db *MemoryDatabase) AddLink(original string, shorten string, userID string) (string, error) {
 	db.mutex.Lock()
 	defer db.mutex.Unlock()
 
@@ -25,7 +25,7 @@ func (db *MemoryDatabase) AddLink(original string, shorten string) (string, erro
 	return shorten, nil
 }
 
-func (db *MemoryDatabase) AddLinks(ctx context.Context, list models.DBShortenRowList) error {
+func (db *MemoryDatabase) AddLinks(ctx context.Context, list models.DBShortenRowList, userId string) error {
 	db.mutex.Lock()
 	defer db.mutex.Unlock()
 

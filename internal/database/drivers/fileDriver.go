@@ -89,7 +89,7 @@ func (db *FileDatabase) getLastUUID() (int, error) {
 	return lastUUID, nil
 }
 
-func (db *FileDatabase) AddLink(original string, shorten string) (string, error) {
+func (db *FileDatabase) AddLink(original string, shorten string, userID string) (string, error) {
 	lastID, err := db.getLastUUID()
 	if err != nil {
 		return "", err
@@ -98,9 +98,10 @@ func (db *FileDatabase) AddLink(original string, shorten string) (string, error)
 	newID := lastID + 1
 
 	err = db.WriteRow(&models.DBShortenRow{
-		ID:   newID,
-		Hash: shorten,
-		URL:  original,
+		ID:     newID,
+		Hash:   shorten,
+		URL:    original,
+		UserID: userID,
 	})
 	if err != nil {
 		return "", err
@@ -108,7 +109,7 @@ func (db *FileDatabase) AddLink(original string, shorten string) (string, error)
 	return shorten, nil
 }
 
-func (db *FileDatabase) AddLinks(ctx context.Context, list models.DBShortenRowList) error {
+func (db *FileDatabase) AddLinks(ctx context.Context, list models.DBShortenRowList, userId string) error {
 	for _, link := range list {
 		lastID, err := db.getLastUUID()
 		if err != nil {
@@ -116,6 +117,7 @@ func (db *FileDatabase) AddLinks(ctx context.Context, list models.DBShortenRowLi
 		}
 
 		link.ID = lastID + 1
+		link.UserID = userId
 
 		err = db.WriteRow(&link)
 

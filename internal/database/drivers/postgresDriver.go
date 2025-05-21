@@ -14,19 +14,19 @@ type PostgresQLDatabase struct {
 	driver *sql.DB
 }
 
-func (db *PostgresQLDatabase) AddLink(original string, shorten string) (string, error) {
+func (db *PostgresQLDatabase) AddLink(original string, shorten string, userID string) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	query := `
-        INSERT INTO shortener (original, shorten)
-        VALUES ($1, $2)
+        INSERT INTO shortener (original, shorten, user_id)
+        VALUES ($1, $2, $3)
         ON CONFLICT (original) DO UPDATE
         SET original = EXCLUDED.original
         RETURNING shorten
     `
 	var insertedShorten string
-	err := db.driver.QueryRowContext(ctx, query, original, shorten).Scan(&insertedShorten)
+	err := db.driver.QueryRowContext(ctx, query, original, shorten, userID).Scan(&insertedShorten)
 	if err != nil {
 		return "", err
 	}
@@ -39,7 +39,7 @@ func (db *PostgresQLDatabase) AddLink(original string, shorten string) (string, 
 	return insertedShorten, nil
 }
 
-func (db *PostgresQLDatabase) AddLinks(ctx context.Context, list models.DBShortenRowList) (err error) {
+func (db *PostgresQLDatabase) AddLinks(ctx context.Context, list models.DBShortenRowList, userId string) (err error) {
 	tx, err := db.driver.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -54,7 +54,7 @@ func (db *PostgresQLDatabase) AddLinks(ctx context.Context, list models.DBShorte
 		}
 	}()
 
-	stmt, err := tx.PrepareContext(ctx, "INSERT INTO shortener (original, shorten) VALUES($1, $2)")
+	stmt, err := tx.PrepareContext(ctx, "INSERT INTO shortener (original, shorten, user_id) VALUES($1, $2, $3)")
 
 	if err != nil {
 		return err
@@ -67,7 +67,7 @@ func (db *PostgresQLDatabase) AddLinks(ctx context.Context, list models.DBShorte
 	}()
 
 	for _, row := range list {
-		_, err = stmt.ExecContext(ctx, row.URL, row.Hash)
+		_, err = stmt.ExecContext(ctx, row.URL, row.Hash, userId)
 		if err != nil {
 			return err
 		}
