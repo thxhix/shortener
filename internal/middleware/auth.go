@@ -11,11 +11,13 @@ import (
 	"github.com/google/uuid"
 )
 
+type ctxKey string
+
 const (
-	cookieName = "token"
-	secretKey  = "yp_iter14"
-	separator  = "."
-	UserIDKey  = "user_id"
+	cookieName string = "token"
+	secretKey  string = "yp_iter14"
+	separator  string = "."
+	UserIDKey  ctxKey = "user_id"
 )
 
 func CheckAuth() func(http.Handler) http.Handler {
