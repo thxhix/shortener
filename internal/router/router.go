@@ -26,6 +26,7 @@ func NewRouter(cfg *config.Config, db interfaces.Database, logger *zap.SugaredLo
 		r.Get("/ping", handlers.PingDatabase)
 
 		r.Route("/api", func(r chi.Router) {
+			r.Use(middleware.SetAuth())
 
 			r.Route("/user", func(r chi.Router) {
 				r.Use(middleware.CheckAuth())
@@ -33,7 +34,6 @@ func NewRouter(cfg *config.Config, db interfaces.Database, logger *zap.SugaredLo
 			})
 
 			r.Route("/shorten", func(r chi.Router) {
-				r.Use(middleware.SetAuth())
 				r.Post("/", handlers.APIStoreLink)
 				r.Post("/batch", handlers.BatchStoreLink)
 			})
