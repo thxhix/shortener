@@ -5,6 +5,7 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
+	"log"
 	"net/http"
 	"strings"
 
@@ -23,7 +24,9 @@ const (
 func CheckAuth() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			log.Println("CheckAuth START: ", r.URL.Path)
 			cookie, err := r.Cookie(cookieName)
+			log.Println("CheckAuth cookie: ", cookie)
 
 			if err == nil {
 				// Если токен-кука есть – пилим ее на userID и secretKey
@@ -33,6 +36,7 @@ func CheckAuth() func(http.Handler) http.Handler {
 					signature := parts[1]
 					// Проверяем secretKey
 					if len(parts) == 2 && verifyToken(userID, signature) {
+						log.Println("CheckAuth cookie valid: ", userID)
 						ctx := context.WithValue(r.Context(), UserIDKey, userID)
 						// secretKey верный, идем дальше
 						next.ServeHTTP(w, r.WithContext(ctx))
@@ -50,11 +54,15 @@ func CheckAuth() func(http.Handler) http.Handler {
 func SetAuth() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			log.Println("SetAuth START: ", r.URL.Path)
+
 			// ИЛИ если secretKey "левый" — создаём новый и пихаем в ответ
 			cookie, err := r.Cookie(cookieName)
+			log.Println("SetAuth cookie: ", cookie)
 			var userID string
 
 			if err != nil || !isValidCookie(cookie) {
+				log.Println("SetAuth cookie not valid: ", cookie)
 				// Куки нет или она невалидна — создаем новую
 				userID = uuid.NewString()
 				signature := generateToken(userID)
@@ -70,8 +78,10 @@ func SetAuth() func(http.Handler) http.Handler {
 				// Кука валидна — извлекаем userID
 				parts := strings.Split(cookie.Value, separator)
 				userID = parts[0]
+				log.Println("SetAuth cookie valid: ", userID)
 			}
 
+			log.Println("SetAuth userID:", userID)
 			ctx := context.WithValue(r.Context(), UserIDKey, userID)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})

@@ -199,6 +199,8 @@ func (h *Handler) PingDatabase(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) UserList(w http.ResponseWriter, r *http.Request) {
 	userID := middleware.GetUserID(r.Context())
 
+	log.Println("UserList userID: ", userID)
+
 	if userID == "" {
 		http.Error(w, "неверный данные авторизации..", http.StatusUnauthorized)
 		return
