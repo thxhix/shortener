@@ -38,8 +38,10 @@ func CheckAuth() func(http.Handler) http.Handler {
 					return
 				}
 			}
-			// Если нет куки или она невалидна — продолжаем БЕЗ userID
-			next.ServeHTTP(w, r)
+			// Если нет куки или она невалидна — обрываем с ошибкой
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusUnauthorized)
+			return
 		})
 	}
 }
