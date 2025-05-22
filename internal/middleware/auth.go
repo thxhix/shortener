@@ -51,34 +51,42 @@ func SetAuth() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// ИЛИ если secretKey "левый" — создаём новый и пихаем в ответ
-			userID, err := r.Cookie(cookieName)
-			if err != nil {
-				if GetUserID(r.Context()) == "" {
-					userID := uuid.NewString()
-					signature := generateToken(userID)
-					token := userID + separator + signature
+			cookie, err := r.Cookie(cookieName)
+			var userID string
 
-					http.SetCookie(w, &http.Cookie{
-						Name:  cookieName,
-						Value: token,
-						Path:  "/",
-					})
+			if err != nil || !isValidCookie(cookie) {
+				// Куки нет или она невалидна — создаем новую
+				userID = uuid.NewString()
+				signature := generateToken(userID)
+				token := userID + separator + signature
 
-					ctx := context.WithValue(r.Context(), UserIDKey, userID)
-					next.ServeHTTP(w, r.WithContext(ctx))
-					return
-				}
-			}
-			user := ""
-			parts := strings.Split(userID.Value, separator)
-			if len(parts) == 2 {
-				user = parts[0]
+				http.SetCookie(w, &http.Cookie{
+					Name:     cookieName,
+					Value:    token,
+					Path:     "/",
+					HttpOnly: true,
+				})
+			} else {
+				// Кука валидна — извлекаем userID
+				parts := strings.Split(cookie.Value, separator)
+				userID = parts[0]
 			}
 
-			ctx := context.WithValue(r.Context(), UserIDKey, user)
+			ctx := context.WithValue(r.Context(), UserIDKey, userID)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
+}
+
+func isValidCookie(cookie *http.Cookie) bool {
+	if cookie == nil {
+		return false
+	}
+	parts := strings.Split(cookie.Value, separator)
+	if len(parts) != 2 {
+		return false
+	}
+	return verifyToken(parts[0], parts[1])
 }
 
 func generateToken(userID string) string {
