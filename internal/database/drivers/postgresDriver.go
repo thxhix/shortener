@@ -18,6 +18,13 @@ func (db *PostgresQLDatabase) AddLink(original string, shorten string, userID st
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
+	var user interface{}
+	if userID == "" {
+		user = nil
+	} else {
+		user = userID
+	}
+
 	query := `
         INSERT INTO shortener (original, shorten, user_id)
         VALUES ($1, $2, $3)
@@ -26,7 +33,7 @@ func (db *PostgresQLDatabase) AddLink(original string, shorten string, userID st
         RETURNING shorten
     `
 	var insertedShorten string
-	err := db.driver.QueryRowContext(ctx, query, original, shorten, userID).Scan(&insertedShorten)
+	err := db.driver.QueryRowContext(ctx, query, original, shorten, user).Scan(&insertedShorten)
 	if err != nil {
 		return "", err
 	}
@@ -54,6 +61,13 @@ func (db *PostgresQLDatabase) AddLinks(ctx context.Context, list models.DBShorte
 		}
 	}()
 
+	var user interface{}
+	if userID == "" {
+		user = nil
+	} else {
+		user = userID
+	}
+
 	stmt, err := tx.PrepareContext(ctx, "INSERT INTO shortener (original, shorten, user_id) VALUES($1, $2, $3)")
 
 	if err != nil {
@@ -67,7 +81,7 @@ func (db *PostgresQLDatabase) AddLinks(ctx context.Context, list models.DBShorte
 	}()
 
 	for _, row := range list {
-		_, err = stmt.ExecContext(ctx, row.URL, row.Hash, userID)
+		_, err = stmt.ExecContext(ctx, row.URL, row.Hash, user)
 		if err != nil {
 			return err
 		}
@@ -118,6 +132,10 @@ func (db *PostgresQLDatabase) GetDriver() *sql.DB { return db.driver }
 func (db *PostgresQLDatabase) GetUserFullLinks(userID string) (models.DBShortenRowList, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
+
+	if userID == "" {
+		return nil, nil
+	}
 
 	query := `SELECT * FROM shortener WHERE user_id = $1`
 
