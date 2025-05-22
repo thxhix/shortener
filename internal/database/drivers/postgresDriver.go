@@ -99,7 +99,7 @@ func (db *PostgresQLDatabase) GetFullLink(hash string) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	query := "SELECT * FROM shortener WHERE (shorten) LIKE ($1)"
+	query := "SELECT id, original, shorten, created_at FROM shortener WHERE (shorten) LIKE ($1)"
 
 	row := db.driver.QueryRowContext(ctx, query, hash)
 
@@ -137,7 +137,7 @@ func (db *PostgresQLDatabase) GetUserFullLinks(userID string) (models.DBShortenR
 		return nil, nil
 	}
 
-	query := `SELECT * FROM shortener WHERE user_id = $1`
+	query := `SELECT id, original, shorten, created_at FROM shortener WHERE user_id = $1`
 
 	rows, err := db.driver.QueryContext(ctx, query, userID)
 	if err != nil {
