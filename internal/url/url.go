@@ -93,7 +93,7 @@ func (u *URLUseCase) UserList(userID string) (models.UserLinksResponseList, erro
 	for _, link := range links {
 		row := models.UserLinksResponse{
 			Original: link.URL,
-			Short:    link.Hash,
+			Short:    u.cfg.BaseURL + "/" + link.Hash,
 		}
 		result = append(result, row)
 	}
