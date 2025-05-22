@@ -41,7 +41,6 @@ func CheckAuth() func(http.Handler) http.Handler {
 			// Если нет куки или она невалидна — обрываем с ошибкой
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusUnauthorized)
-			return
 		})
 	}
 }

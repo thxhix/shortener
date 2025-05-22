@@ -26,9 +26,9 @@ func NewRouter(cfg *config.Config, db interfaces.Database, logger *zap.SugaredLo
 		r.Get("/ping", handlers.PingDatabase)
 
 		r.Route("/api", func(r chi.Router) {
-			r.Use(middleware.CheckAuth())
 
 			r.Route("/user", func(r chi.Router) {
+				r.Use(middleware.CheckAuth())
 				r.Get("/urls", handlers.UserList)
 			})
 
