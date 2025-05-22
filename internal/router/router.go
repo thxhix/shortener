@@ -29,7 +29,7 @@ func NewRouter(cfg *config.Config, db interfaces.Database, logger *zap.SugaredLo
 			r.Use(middleware.CheckAuth())
 
 			r.Route("/user", func(r chi.Router) {
-				r.Post("/urls", handlers.UserList)
+				r.Get("/urls", handlers.UserList)
 			})
 
 			r.Route("/shorten", func(r chi.Router) {
