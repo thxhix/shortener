@@ -51,7 +51,7 @@ func SetAuth() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// ИЛИ если secretKey "левый" — создаём новый и пихаем в ответ
-			_, err := r.Cookie(cookieName)
+			userID, err := r.Cookie(cookieName)
 			if err != nil {
 				if GetUserID(r.Context()) == "" {
 					userID := uuid.NewString()
@@ -69,7 +69,14 @@ func SetAuth() func(http.Handler) http.Handler {
 					return
 				}
 			}
-			next.ServeHTTP(w, r)
+			user := ""
+			parts := strings.Split(userID.Value, separator)
+			if len(parts) == 2 {
+				user = parts[0]
+			}
+
+			ctx := context.WithValue(r.Context(), UserIDKey, user)
+			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
 }
