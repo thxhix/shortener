@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	json2 "encoding/json"
 	"errors"
 	"github.com/thxhix/shortener/internal/config"
 	custorErrors "github.com/thxhix/shortener/internal/errors"
@@ -76,6 +77,10 @@ func (h *Handler) Redirect(w http.ResponseWriter, r *http.Request) {
 
 	link, err := h.URLUsecase.GetFullURL(id)
 	if err != nil {
+		if errors.Is(err, urlUseCase.ErrLinkDeleted) {
+			w.WriteHeader(http.StatusGone)
+			return
+		}
 		http.Error(w, "такой страницы нет", http.StatusBadRequest)
 		return
 	}
@@ -228,4 +233,30 @@ func (h *Handler) UserList(w http.ResponseWriter, r *http.Request) {
 		log.Printf("ошибка при записи ответа: %v", err)
 		return
 	}
+}
+
+func (h *Handler) UserDeleteRows(w http.ResponseWriter, r *http.Request) {
+	userID := middleware.GetUserID(r.Context())
+
+	if userID == "" {
+		http.Error(w, "неверный данные авторизации..", http.StatusUnauthorized)
+		return
+	}
+
+	var ids []string
+	jsonBody, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, "не удалось прочитать тело запроса", http.StatusBadRequest)
+		return
+	}
+
+	err = json2.Unmarshal(jsonBody, &ids)
+	if err != nil {
+		http.Error(w, "Ошибка парсинга JSON: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	go h.URLUsecase.UserDeleteRows(middleware.GetUserID(r.Context()), ids)
+
+	w.WriteHeader(http.StatusAccepted)
 }

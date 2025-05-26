@@ -3,6 +3,7 @@ package drivers
 import (
 	"context"
 	"database/sql"
+	"github.com/lib/pq"
 	_ "github.com/lib/pq"
 	customErrors "github.com/thxhix/shortener/internal/errors"
 	"github.com/thxhix/shortener/internal/models"
@@ -95,11 +96,11 @@ func (db *PostgresQLDatabase) AddLinks(ctx context.Context, list models.DBShorte
 	return
 }
 
-func (db *PostgresQLDatabase) GetFullLink(hash string) (string, error) {
+func (db *PostgresQLDatabase) GetFullLink(hash string) (models.DBShortenRow, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	query := "SELECT id, original, shorten, created_at FROM shortener WHERE (shorten) LIKE ($1)"
+	query := "SELECT id, original, shorten, is_deleted, created_at FROM shortener WHERE (shorten) LIKE ($1)"
 
 	row := db.driver.QueryRowContext(ctx, query, hash)
 
@@ -108,13 +109,14 @@ func (db *PostgresQLDatabase) GetFullLink(hash string) (string, error) {
 		&data.ID,
 		&data.URL,
 		&data.Hash,
+		&data.IsDeleted,
 		&data.Time,
 	)
 	if err != nil {
-		return "", err
+		return models.DBShortenRow{}, err
 	}
 
-	return data.URL, nil
+	return data, nil
 }
 
 func (db *PostgresQLDatabase) Close() error {
@@ -162,6 +164,20 @@ func (db *PostgresQLDatabase) GetUserFullLinks(userID string) (models.DBShortenR
 	}
 
 	return results, nil
+}
+
+func (db *PostgresQLDatabase) RemoveUserLinks(userID string, ids []string) error {
+	if len(ids) == 0 {
+		return nil
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	query := `UPDATE shortener SET is_deleted = true 
+	          WHERE user_id = $1 AND shorten = ANY($2)`
+	_, err := db.driver.ExecContext(ctx, query, userID, pq.Array(ids))
+	return err
 }
 
 func NewPQLDatabase(params string) (*PostgresQLDatabase, error) {

@@ -21,11 +21,12 @@ type DBShortenRowList []DBShortenRow
 
 //easyjson:json
 type DBShortenRow struct {
-	ID     int       `json:"id"`
-	Hash   string    `json:"hash"`
-	URL    string    `json:"url"`
-	Time   time.Time `json:"time"`
-	UserID string    `json:"user_id"`
+	ID        int       `json:"id"`
+	Hash      string    `json:"hash"`
+	URL       string    `json:"url"`
+	Time      time.Time `json:"time"`
+	UserID    string    `json:"user_id"`
+	IsDeleted bool      `json:"is_deleted"`
 }
 
 //easyjson:json
@@ -51,4 +52,9 @@ type UserLinksResponseList []UserLinksResponse
 type UserLinksResponse struct {
 	Short    string `json:"short_url"`
 	Original string `json:"original_url"`
+}
+
+//easyjson:json
+type IDList struct {
+	IDs []string `json:"ids"`
 }

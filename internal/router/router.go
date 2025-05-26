@@ -30,6 +30,7 @@ func NewRouter(cfg *config.Config, db interfaces.Database, logger *zap.SugaredLo
 
 			r.Route("/user", func(r chi.Router) {
 				r.Get("/urls", handlers.UserList)
+				r.Delete("/urls", handlers.UserDeleteRows)
 			})
 
 			r.Route("/shorten", func(r chi.Router) {

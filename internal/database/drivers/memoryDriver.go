@@ -39,15 +39,15 @@ func (db *MemoryDatabase) AddLinks(ctx context.Context, list models.DBShortenRow
 	return nil
 }
 
-func (db *MemoryDatabase) GetFullLink(hash string) (string, error) {
+func (db *MemoryDatabase) GetFullLink(hash string) (models.DBShortenRow, error) {
 	db.mutex.RLock()
 	defer db.mutex.RUnlock()
 
 	value, ok := db.storage[hash]
 	if ok {
-		return value, nil
+		return models.DBShortenRow{URL: value}, nil
 	}
-	return "", errors.New("нет такой записи в БД")
+	return models.DBShortenRow{}, errors.New("нет такой записи в БД")
 }
 
 func (db *MemoryDatabase) Close() error {
@@ -64,6 +64,10 @@ func (db *MemoryDatabase) GetDriver() *sql.DB {
 
 func (db *MemoryDatabase) GetUserFullLinks(userID string) (models.DBShortenRowList, error) {
 	return nil, nil
+}
+
+func (db *MemoryDatabase) RemoveUserLinks(userID string, ids []string) error {
+	return nil
 }
 
 func NewMemoryDatabase() (*MemoryDatabase, error) {

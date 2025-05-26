@@ -222,7 +222,105 @@ func (v *ShortURL) UnmarshalJSON(data []byte) error {
 func (v *ShortURL) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjsonD2b7633eDecodeGithubComThxhixShortenerInternalModels2(l, v)
 }
-func easyjsonD2b7633eDecodeGithubComThxhixShortenerInternalModels3(in *jlexer.Lexer, out *FullURL) {
+func easyjsonD2b7633eDecodeGithubComThxhixShortenerInternalModels3(in *jlexer.Lexer, out *IDList) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		if isTopLevel {
+			in.Consumed()
+		}
+		in.Skip()
+		return
+	}
+	in.Delim('{')
+	for !in.IsDelim('}') {
+		key := in.UnsafeFieldName(false)
+		in.WantColon()
+		if in.IsNull() {
+			in.Skip()
+			in.WantComma()
+			continue
+		}
+		switch key {
+		case "ids":
+			if in.IsNull() {
+				in.Skip()
+				out.IDs = nil
+			} else {
+				in.Delim('[')
+				if out.IDs == nil {
+					if !in.IsDelim(']') {
+						out.IDs = make([]string, 0, 4)
+					} else {
+						out.IDs = []string{}
+					}
+				} else {
+					out.IDs = (out.IDs)[:0]
+				}
+				for !in.IsDelim(']') {
+					var v4 string
+					v4 = string(in.String())
+					out.IDs = append(out.IDs, v4)
+					in.WantComma()
+				}
+				in.Delim(']')
+			}
+		default:
+			in.SkipRecursive()
+		}
+		in.WantComma()
+	}
+	in.Delim('}')
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func easyjsonD2b7633eEncodeGithubComThxhixShortenerInternalModels3(out *jwriter.Writer, in IDList) {
+	out.RawByte('{')
+	first := true
+	_ = first
+	{
+		const prefix string = ",\"ids\":"
+		out.RawString(prefix[1:])
+		if in.IDs == nil && (out.Flags&jwriter.NilSliceAsEmpty) == 0 {
+			out.RawString("null")
+		} else {
+			out.RawByte('[')
+			for v5, v6 := range in.IDs {
+				if v5 > 0 {
+					out.RawByte(',')
+				}
+				out.String(string(v6))
+			}
+			out.RawByte(']')
+		}
+	}
+	out.RawByte('}')
+}
+
+// MarshalJSON supports json.Marshaler interface
+func (v IDList) MarshalJSON() ([]byte, error) {
+	w := jwriter.Writer{}
+	easyjsonD2b7633eEncodeGithubComThxhixShortenerInternalModels3(&w, v)
+	return w.Buffer.BuildBytes(), w.Error
+}
+
+// MarshalEasyJSON supports easyjson.Marshaler interface
+func (v IDList) MarshalEasyJSON(w *jwriter.Writer) {
+	easyjsonD2b7633eEncodeGithubComThxhixShortenerInternalModels3(w, v)
+}
+
+// UnmarshalJSON supports json.Unmarshaler interface
+func (v *IDList) UnmarshalJSON(data []byte) error {
+	r := jlexer.Lexer{Data: data}
+	easyjsonD2b7633eDecodeGithubComThxhixShortenerInternalModels3(&r, v)
+	return r.Error()
+}
+
+// UnmarshalEasyJSON supports easyjson.Unmarshaler interface
+func (v *IDList) UnmarshalEasyJSON(l *jlexer.Lexer) {
+	easyjsonD2b7633eDecodeGithubComThxhixShortenerInternalModels3(l, v)
+}
+func easyjsonD2b7633eDecodeGithubComThxhixShortenerInternalModels4(in *jlexer.Lexer, out *FullURL) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -253,7 +351,7 @@ func easyjsonD2b7633eDecodeGithubComThxhixShortenerInternalModels3(in *jlexer.Le
 		in.Consumed()
 	}
 }
-func easyjsonD2b7633eEncodeGithubComThxhixShortenerInternalModels3(out *jwriter.Writer, in FullURL) {
+func easyjsonD2b7633eEncodeGithubComThxhixShortenerInternalModels4(out *jwriter.Writer, in FullURL) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -268,27 +366,27 @@ func easyjsonD2b7633eEncodeGithubComThxhixShortenerInternalModels3(out *jwriter.
 // MarshalJSON supports json.Marshaler interface
 func (v FullURL) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjsonD2b7633eEncodeGithubComThxhixShortenerInternalModels3(&w, v)
+	easyjsonD2b7633eEncodeGithubComThxhixShortenerInternalModels4(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v FullURL) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonD2b7633eEncodeGithubComThxhixShortenerInternalModels3(w, v)
+	easyjsonD2b7633eEncodeGithubComThxhixShortenerInternalModels4(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *FullURL) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjsonD2b7633eDecodeGithubComThxhixShortenerInternalModels3(&r, v)
+	easyjsonD2b7633eDecodeGithubComThxhixShortenerInternalModels4(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *FullURL) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonD2b7633eDecodeGithubComThxhixShortenerInternalModels3(l, v)
+	easyjsonD2b7633eDecodeGithubComThxhixShortenerInternalModels4(l, v)
 }
-func easyjsonD2b7633eDecodeGithubComThxhixShortenerInternalModels4(in *jlexer.Lexer, out *DBShortenRowList) {
+func easyjsonD2b7633eDecodeGithubComThxhixShortenerInternalModels5(in *jlexer.Lexer, out *DBShortenRowList) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		in.Skip()
@@ -305,9 +403,9 @@ func easyjsonD2b7633eDecodeGithubComThxhixShortenerInternalModels4(in *jlexer.Le
 			*out = (*out)[:0]
 		}
 		for !in.IsDelim(']') {
-			var v4 DBShortenRow
-			(v4).UnmarshalEasyJSON(in)
-			*out = append(*out, v4)
+			var v7 DBShortenRow
+			(v7).UnmarshalEasyJSON(in)
+			*out = append(*out, v7)
 			in.WantComma()
 		}
 		in.Delim(']')
@@ -316,16 +414,16 @@ func easyjsonD2b7633eDecodeGithubComThxhixShortenerInternalModels4(in *jlexer.Le
 		in.Consumed()
 	}
 }
-func easyjsonD2b7633eEncodeGithubComThxhixShortenerInternalModels4(out *jwriter.Writer, in DBShortenRowList) {
+func easyjsonD2b7633eEncodeGithubComThxhixShortenerInternalModels5(out *jwriter.Writer, in DBShortenRowList) {
 	if in == nil && (out.Flags&jwriter.NilSliceAsEmpty) == 0 {
 		out.RawString("null")
 	} else {
 		out.RawByte('[')
-		for v5, v6 := range in {
-			if v5 > 0 {
+		for v8, v9 := range in {
+			if v8 > 0 {
 				out.RawByte(',')
 			}
-			(v6).MarshalEasyJSON(out)
+			(v9).MarshalEasyJSON(out)
 		}
 		out.RawByte(']')
 	}
@@ -334,27 +432,27 @@ func easyjsonD2b7633eEncodeGithubComThxhixShortenerInternalModels4(out *jwriter.
 // MarshalJSON supports json.Marshaler interface
 func (v DBShortenRowList) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjsonD2b7633eEncodeGithubComThxhixShortenerInternalModels4(&w, v)
+	easyjsonD2b7633eEncodeGithubComThxhixShortenerInternalModels5(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v DBShortenRowList) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonD2b7633eEncodeGithubComThxhixShortenerInternalModels4(w, v)
+	easyjsonD2b7633eEncodeGithubComThxhixShortenerInternalModels5(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *DBShortenRowList) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjsonD2b7633eDecodeGithubComThxhixShortenerInternalModels4(&r, v)
+	easyjsonD2b7633eDecodeGithubComThxhixShortenerInternalModels5(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *DBShortenRowList) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonD2b7633eDecodeGithubComThxhixShortenerInternalModels4(l, v)
+	easyjsonD2b7633eDecodeGithubComThxhixShortenerInternalModels5(l, v)
 }
-func easyjsonD2b7633eDecodeGithubComThxhixShortenerInternalModels5(in *jlexer.Lexer, out *DBShortenRow) {
+func easyjsonD2b7633eDecodeGithubComThxhixShortenerInternalModels6(in *jlexer.Lexer, out *DBShortenRow) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -385,6 +483,8 @@ func easyjsonD2b7633eDecodeGithubComThxhixShortenerInternalModels5(in *jlexer.Le
 			}
 		case "user_id":
 			out.UserID = string(in.String())
+		case "is_deleted":
+			out.IsDeleted = bool(in.Bool())
 		default:
 			in.SkipRecursive()
 		}
@@ -395,7 +495,7 @@ func easyjsonD2b7633eDecodeGithubComThxhixShortenerInternalModels5(in *jlexer.Le
 		in.Consumed()
 	}
 }
-func easyjsonD2b7633eEncodeGithubComThxhixShortenerInternalModels5(out *jwriter.Writer, in DBShortenRow) {
+func easyjsonD2b7633eEncodeGithubComThxhixShortenerInternalModels6(out *jwriter.Writer, in DBShortenRow) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -424,33 +524,38 @@ func easyjsonD2b7633eEncodeGithubComThxhixShortenerInternalModels5(out *jwriter.
 		out.RawString(prefix)
 		out.String(string(in.UserID))
 	}
+	{
+		const prefix string = ",\"is_deleted\":"
+		out.RawString(prefix)
+		out.Bool(bool(in.IsDeleted))
+	}
 	out.RawByte('}')
 }
 
 // MarshalJSON supports json.Marshaler interface
 func (v DBShortenRow) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjsonD2b7633eEncodeGithubComThxhixShortenerInternalModels5(&w, v)
+	easyjsonD2b7633eEncodeGithubComThxhixShortenerInternalModels6(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v DBShortenRow) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonD2b7633eEncodeGithubComThxhixShortenerInternalModels5(w, v)
+	easyjsonD2b7633eEncodeGithubComThxhixShortenerInternalModels6(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *DBShortenRow) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjsonD2b7633eDecodeGithubComThxhixShortenerInternalModels5(&r, v)
+	easyjsonD2b7633eDecodeGithubComThxhixShortenerInternalModels6(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *DBShortenRow) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonD2b7633eDecodeGithubComThxhixShortenerInternalModels5(l, v)
+	easyjsonD2b7633eDecodeGithubComThxhixShortenerInternalModels6(l, v)
 }
-func easyjsonD2b7633eDecodeGithubComThxhixShortenerInternalModels6(in *jlexer.Lexer, out *BatchShortenResponseList) {
+func easyjsonD2b7633eDecodeGithubComThxhixShortenerInternalModels7(in *jlexer.Lexer, out *BatchShortenResponseList) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		in.Skip()
@@ -467,9 +572,9 @@ func easyjsonD2b7633eDecodeGithubComThxhixShortenerInternalModels6(in *jlexer.Le
 			*out = (*out)[:0]
 		}
 		for !in.IsDelim(']') {
-			var v7 BatchShortenResponse
-			(v7).UnmarshalEasyJSON(in)
-			*out = append(*out, v7)
+			var v10 BatchShortenResponse
+			(v10).UnmarshalEasyJSON(in)
+			*out = append(*out, v10)
 			in.WantComma()
 		}
 		in.Delim(']')
@@ -478,16 +583,16 @@ func easyjsonD2b7633eDecodeGithubComThxhixShortenerInternalModels6(in *jlexer.Le
 		in.Consumed()
 	}
 }
-func easyjsonD2b7633eEncodeGithubComThxhixShortenerInternalModels6(out *jwriter.Writer, in BatchShortenResponseList) {
+func easyjsonD2b7633eEncodeGithubComThxhixShortenerInternalModels7(out *jwriter.Writer, in BatchShortenResponseList) {
 	if in == nil && (out.Flags&jwriter.NilSliceAsEmpty) == 0 {
 		out.RawString("null")
 	} else {
 		out.RawByte('[')
-		for v8, v9 := range in {
-			if v8 > 0 {
+		for v11, v12 := range in {
+			if v11 > 0 {
 				out.RawByte(',')
 			}
-			(v9).MarshalEasyJSON(out)
+			(v12).MarshalEasyJSON(out)
 		}
 		out.RawByte(']')
 	}
@@ -496,27 +601,27 @@ func easyjsonD2b7633eEncodeGithubComThxhixShortenerInternalModels6(out *jwriter.
 // MarshalJSON supports json.Marshaler interface
 func (v BatchShortenResponseList) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjsonD2b7633eEncodeGithubComThxhixShortenerInternalModels6(&w, v)
+	easyjsonD2b7633eEncodeGithubComThxhixShortenerInternalModels7(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v BatchShortenResponseList) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonD2b7633eEncodeGithubComThxhixShortenerInternalModels6(w, v)
+	easyjsonD2b7633eEncodeGithubComThxhixShortenerInternalModels7(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *BatchShortenResponseList) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjsonD2b7633eDecodeGithubComThxhixShortenerInternalModels6(&r, v)
+	easyjsonD2b7633eDecodeGithubComThxhixShortenerInternalModels7(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *BatchShortenResponseList) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonD2b7633eDecodeGithubComThxhixShortenerInternalModels6(l, v)
+	easyjsonD2b7633eDecodeGithubComThxhixShortenerInternalModels7(l, v)
 }
-func easyjsonD2b7633eDecodeGithubComThxhixShortenerInternalModels7(in *jlexer.Lexer, out *BatchShortenResponse) {
+func easyjsonD2b7633eDecodeGithubComThxhixShortenerInternalModels8(in *jlexer.Lexer, out *BatchShortenResponse) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -549,7 +654,7 @@ func easyjsonD2b7633eDecodeGithubComThxhixShortenerInternalModels7(in *jlexer.Le
 		in.Consumed()
 	}
 }
-func easyjsonD2b7633eEncodeGithubComThxhixShortenerInternalModels7(out *jwriter.Writer, in BatchShortenResponse) {
+func easyjsonD2b7633eEncodeGithubComThxhixShortenerInternalModels8(out *jwriter.Writer, in BatchShortenResponse) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -569,27 +674,27 @@ func easyjsonD2b7633eEncodeGithubComThxhixShortenerInternalModels7(out *jwriter.
 // MarshalJSON supports json.Marshaler interface
 func (v BatchShortenResponse) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjsonD2b7633eEncodeGithubComThxhixShortenerInternalModels7(&w, v)
+	easyjsonD2b7633eEncodeGithubComThxhixShortenerInternalModels8(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v BatchShortenResponse) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonD2b7633eEncodeGithubComThxhixShortenerInternalModels7(w, v)
+	easyjsonD2b7633eEncodeGithubComThxhixShortenerInternalModels8(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *BatchShortenResponse) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjsonD2b7633eDecodeGithubComThxhixShortenerInternalModels7(&r, v)
+	easyjsonD2b7633eDecodeGithubComThxhixShortenerInternalModels8(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *BatchShortenResponse) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonD2b7633eDecodeGithubComThxhixShortenerInternalModels7(l, v)
+	easyjsonD2b7633eDecodeGithubComThxhixShortenerInternalModels8(l, v)
 }
-func easyjsonD2b7633eDecodeGithubComThxhixShortenerInternalModels8(in *jlexer.Lexer, out *BatchShortenRequestList) {
+func easyjsonD2b7633eDecodeGithubComThxhixShortenerInternalModels9(in *jlexer.Lexer, out *BatchShortenRequestList) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		in.Skip()
@@ -606,9 +711,9 @@ func easyjsonD2b7633eDecodeGithubComThxhixShortenerInternalModels8(in *jlexer.Le
 			*out = (*out)[:0]
 		}
 		for !in.IsDelim(']') {
-			var v10 BatchShortenRequest
-			(v10).UnmarshalEasyJSON(in)
-			*out = append(*out, v10)
+			var v13 BatchShortenRequest
+			(v13).UnmarshalEasyJSON(in)
+			*out = append(*out, v13)
 			in.WantComma()
 		}
 		in.Delim(']')
@@ -617,16 +722,16 @@ func easyjsonD2b7633eDecodeGithubComThxhixShortenerInternalModels8(in *jlexer.Le
 		in.Consumed()
 	}
 }
-func easyjsonD2b7633eEncodeGithubComThxhixShortenerInternalModels8(out *jwriter.Writer, in BatchShortenRequestList) {
+func easyjsonD2b7633eEncodeGithubComThxhixShortenerInternalModels9(out *jwriter.Writer, in BatchShortenRequestList) {
 	if in == nil && (out.Flags&jwriter.NilSliceAsEmpty) == 0 {
 		out.RawString("null")
 	} else {
 		out.RawByte('[')
-		for v11, v12 := range in {
-			if v11 > 0 {
+		for v14, v15 := range in {
+			if v14 > 0 {
 				out.RawByte(',')
 			}
-			(v12).MarshalEasyJSON(out)
+			(v15).MarshalEasyJSON(out)
 		}
 		out.RawByte(']')
 	}
@@ -635,27 +740,27 @@ func easyjsonD2b7633eEncodeGithubComThxhixShortenerInternalModels8(out *jwriter.
 // MarshalJSON supports json.Marshaler interface
 func (v BatchShortenRequestList) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjsonD2b7633eEncodeGithubComThxhixShortenerInternalModels8(&w, v)
+	easyjsonD2b7633eEncodeGithubComThxhixShortenerInternalModels9(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v BatchShortenRequestList) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonD2b7633eEncodeGithubComThxhixShortenerInternalModels8(w, v)
+	easyjsonD2b7633eEncodeGithubComThxhixShortenerInternalModels9(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *BatchShortenRequestList) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjsonD2b7633eDecodeGithubComThxhixShortenerInternalModels8(&r, v)
+	easyjsonD2b7633eDecodeGithubComThxhixShortenerInternalModels9(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *BatchShortenRequestList) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonD2b7633eDecodeGithubComThxhixShortenerInternalModels8(l, v)
+	easyjsonD2b7633eDecodeGithubComThxhixShortenerInternalModels9(l, v)
 }
-func easyjsonD2b7633eDecodeGithubComThxhixShortenerInternalModels9(in *jlexer.Lexer, out *BatchShortenRequest) {
+func easyjsonD2b7633eDecodeGithubComThxhixShortenerInternalModels10(in *jlexer.Lexer, out *BatchShortenRequest) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -688,7 +793,7 @@ func easyjsonD2b7633eDecodeGithubComThxhixShortenerInternalModels9(in *jlexer.Le
 		in.Consumed()
 	}
 }
-func easyjsonD2b7633eEncodeGithubComThxhixShortenerInternalModels9(out *jwriter.Writer, in BatchShortenRequest) {
+func easyjsonD2b7633eEncodeGithubComThxhixShortenerInternalModels10(out *jwriter.Writer, in BatchShortenRequest) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -708,23 +813,23 @@ func easyjsonD2b7633eEncodeGithubComThxhixShortenerInternalModels9(out *jwriter.
 // MarshalJSON supports json.Marshaler interface
 func (v BatchShortenRequest) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjsonD2b7633eEncodeGithubComThxhixShortenerInternalModels9(&w, v)
+	easyjsonD2b7633eEncodeGithubComThxhixShortenerInternalModels10(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v BatchShortenRequest) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonD2b7633eEncodeGithubComThxhixShortenerInternalModels9(w, v)
+	easyjsonD2b7633eEncodeGithubComThxhixShortenerInternalModels10(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *BatchShortenRequest) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjsonD2b7633eDecodeGithubComThxhixShortenerInternalModels9(&r, v)
+	easyjsonD2b7633eDecodeGithubComThxhixShortenerInternalModels10(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *BatchShortenRequest) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonD2b7633eDecodeGithubComThxhixShortenerInternalModels9(l, v)
+	easyjsonD2b7633eDecodeGithubComThxhixShortenerInternalModels10(l, v)
 }

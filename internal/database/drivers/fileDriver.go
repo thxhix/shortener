@@ -156,16 +156,20 @@ func (db *FileDatabase) AddLinks(ctx context.Context, list models.DBShortenRowLi
 	return nil
 }
 
-func (db *FileDatabase) GetFullLink(hash string) (string, error) {
+func (db *FileDatabase) GetFullLink(hash string) (models.DBShortenRow, error) {
 	byHash, err := db.FindByHash(hash)
 	if err != nil {
-		return "", err
+		return models.DBShortenRow{}, err
 	}
-	return byHash.URL, nil
+	return models.DBShortenRow{URL: byHash.URL}, nil
 }
 
 func (db *FileDatabase) GetUserFullLinks(userID string) (models.DBShortenRowList, error) {
 	return db.FindByUserID(userID)
+}
+
+func (db *FileDatabase) RemoveUserLinks(userID string, ids []string) error {
+	return nil
 }
 
 func (db *FileDatabase) PingConnection() error {
