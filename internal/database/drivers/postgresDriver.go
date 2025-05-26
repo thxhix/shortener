@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"github.com/lib/pq"
-	_ "github.com/lib/pq"
 	customErrors "github.com/thxhix/shortener/internal/errors"
 	"github.com/thxhix/shortener/internal/models"
 	"log"
