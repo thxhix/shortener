@@ -75,7 +75,7 @@ func (h *Handler) StoreLink(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) Redirect(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
-	link, err := h.URLUsecase.GetFullURL(id)
+	link, err := h.URLUsecase.GetFullURL(r.Context(), id)
 	if err != nil {
 		if errors.Is(err, urlUseCase.ErrLinkDeleted) {
 			w.WriteHeader(http.StatusGone)
@@ -209,7 +209,7 @@ func (h *Handler) UserList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	links, err := h.URLUsecase.UserList(middleware.GetUserID(r.Context()))
+	links, err := h.URLUsecase.UserList(r.Context(), middleware.GetUserID(r.Context()))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -256,7 +256,7 @@ func (h *Handler) UserDeleteRows(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go h.URLUsecase.UserDeleteRows(middleware.GetUserID(r.Context()), ids)
+	go h.URLUsecase.UserDeleteRows(r.Context(), middleware.GetUserID(r.Context()), ids)
 
 	w.WriteHeader(http.StatusAccepted)
 }

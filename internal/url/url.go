@@ -14,11 +14,11 @@ import (
 
 type URLUseCaseInterface interface {
 	Shorten(ctx context.Context, url string) (string, error)
-	GetFullURL(url string) (string, error)
+	GetFullURL(ctx context.Context, hash string) (string, error)
 	PingDB() error
 	BatchShorten(ctx context.Context, list models.BatchShortenRequestList) (models.BatchShortenResponseList, error)
-	UserList(userID string) (models.UserLinksResponseList, error)
-	UserDeleteRows(userID string, ids []string)
+	UserList(ctx context.Context, userID string) (models.UserLinksResponseList, error)
+	UserDeleteRows(ctx context.Context, userID string, ids []string)
 }
 
 var ErrLinkDeleted = errors.New("DELETED")
@@ -37,7 +37,7 @@ func NewURLUseCase(db interfaces.Database, cfg config.Config) *URLUseCase {
 
 func (u *URLUseCase) Shorten(ctx context.Context, originalURL string) (string, error) {
 	shorten := GetHash()
-	shorten, err := u.database.AddLink(originalURL, shorten, middleware.GetUserID(ctx))
+	shorten, err := u.database.AddLink(ctx, originalURL, shorten, middleware.GetUserID(ctx))
 	if err != nil {
 		if errors.Is(err, customErrors.ErrDuplicate) {
 			return shorten, customErrors.ErrDuplicate
@@ -47,8 +47,8 @@ func (u *URLUseCase) Shorten(ctx context.Context, originalURL string) (string, e
 	return shorten, nil
 }
 
-func (u *URLUseCase) GetFullURL(hash string) (string, error) {
-	link, err := u.database.GetFullLink(hash)
+func (u *URLUseCase) GetFullURL(ctx context.Context, hash string) (string, error) {
+	link, err := u.database.GetFullLink(ctx, hash)
 	if err != nil {
 		return "", err
 	}
@@ -90,8 +90,8 @@ func (u *URLUseCase) BatchShorten(ctx context.Context, list models.BatchShortenR
 	return response, nil
 }
 
-func (u *URLUseCase) UserList(userID string) (models.UserLinksResponseList, error) {
-	links, err := u.database.GetUserFullLinks(userID)
+func (u *URLUseCase) UserList(ctx context.Context, userID string) (models.UserLinksResponseList, error) {
+	links, err := u.database.GetUserFullLinks(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -109,7 +109,7 @@ func (u *URLUseCase) UserList(userID string) (models.UserLinksResponseList, erro
 	return result, nil
 }
 
-func (u *URLUseCase) UserDeleteRows(userID string, ids []string) {
+func (u *URLUseCase) UserDeleteRows(ctx context.Context, userID string, ids []string) {
 	numWorkers := 10
 	batchSize := 1000
 
@@ -122,7 +122,7 @@ func (u *URLUseCase) UserDeleteRows(userID string, ids []string) {
 		go func() {
 			defer wg.Done()
 			for batch := range batchCh {
-				if err := u.database.RemoveUserLinks(userID, batch); err != nil {
+				if err := u.database.RemoveUserLinks(ctx, userID, batch); err != nil {
 					log.Printf("[worker %d] UserDeleteRows ошибка при удалении ссылок: %v", workerID, err)
 					continue
 				}

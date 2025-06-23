@@ -14,7 +14,7 @@ type MemoryDatabase struct {
 	mutex   sync.RWMutex
 }
 
-func (db *MemoryDatabase) AddLink(original string, shorten string, userID string) (string, error) {
+func (db *MemoryDatabase) AddLink(ctx context.Context, original string, shorten string, userID string) (string, error) {
 	db.mutex.Lock()
 	defer db.mutex.Unlock()
 
@@ -39,7 +39,7 @@ func (db *MemoryDatabase) AddLinks(ctx context.Context, list models.DBShortenRow
 	return nil
 }
 
-func (db *MemoryDatabase) GetFullLink(hash string) (models.DBShortenRow, error) {
+func (db *MemoryDatabase) GetFullLink(ctx context.Context, hash string) (models.DBShortenRow, error) {
 	db.mutex.RLock()
 	defer db.mutex.RUnlock()
 
@@ -62,11 +62,11 @@ func (db *MemoryDatabase) GetDriver() *sql.DB {
 	return nil
 }
 
-func (db *MemoryDatabase) GetUserFullLinks(userID string) (models.DBShortenRowList, error) {
+func (db *MemoryDatabase) GetUserFullLinks(ctx context.Context, userID string) (models.DBShortenRowList, error) {
 	return nil, nil
 }
 
-func (db *MemoryDatabase) RemoveUserLinks(userID string, ids []string) error {
+func (db *MemoryDatabase) RemoveUserLinks(ctx context.Context, userID string, ids []string) error {
 	return nil
 }
 

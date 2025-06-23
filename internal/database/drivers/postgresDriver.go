@@ -14,10 +14,7 @@ type PostgresQLDatabase struct {
 	driver *sql.DB
 }
 
-func (db *PostgresQLDatabase) AddLink(original string, shorten string, userID string) (string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
+func (db *PostgresQLDatabase) AddLink(ctx context.Context, original string, shorten string, userID string) (string, error) {
 	var user interface{}
 	if userID == "" {
 		user = nil
@@ -38,7 +35,6 @@ func (db *PostgresQLDatabase) AddLink(original string, shorten string, userID st
 		return "", err
 	}
 
-	// если insert не произошёл — значит был конфликт, возвращаем ошибку и уже существующий хэш
 	if insertedShorten != shorten {
 		return insertedShorten, customErrors.ErrDuplicate
 	}
@@ -95,7 +91,7 @@ func (db *PostgresQLDatabase) AddLinks(ctx context.Context, list models.DBShorte
 	return
 }
 
-func (db *PostgresQLDatabase) GetFullLink(hash string) (models.DBShortenRow, error) {
+func (db *PostgresQLDatabase) GetFullLink(ctx context.Context, hash string) (models.DBShortenRow, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -130,7 +126,7 @@ func (db *PostgresQLDatabase) PingConnection() error {
 
 func (db *PostgresQLDatabase) GetDriver() *sql.DB { return db.driver }
 
-func (db *PostgresQLDatabase) GetUserFullLinks(userID string) (models.DBShortenRowList, error) {
+func (db *PostgresQLDatabase) GetUserFullLinks(ctx context.Context, userID string) (models.DBShortenRowList, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -165,7 +161,7 @@ func (db *PostgresQLDatabase) GetUserFullLinks(userID string) (models.DBShortenR
 	return results, nil
 }
 
-func (db *PostgresQLDatabase) RemoveUserLinks(userID string, ids []string) error {
+func (db *PostgresQLDatabase) RemoveUserLinks(ctx context.Context, userID string, ids []string) error {
 	if len(ids) == 0 {
 		return nil
 	}

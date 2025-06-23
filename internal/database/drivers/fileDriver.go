@@ -126,7 +126,7 @@ func (db *FileDatabase) getLastUUID() (int, error) {
 	return lastUUID, nil
 }
 
-func (db *FileDatabase) AddLink(original string, shorten string, userID string) (string, error) {
+func (db *FileDatabase) AddLink(ctx context.Context, original string, shorten string, userID string) (string, error) {
 	lastID, err := db.getLastUUID()
 	if err != nil {
 		return "", err
@@ -166,7 +166,7 @@ func (db *FileDatabase) AddLinks(ctx context.Context, list models.DBShortenRowLi
 	return nil
 }
 
-func (db *FileDatabase) GetFullLink(hash string) (models.DBShortenRow, error) {
+func (db *FileDatabase) GetFullLink(ctx context.Context, hash string) (models.DBShortenRow, error) {
 	byHash, err := db.FindByHash(hash)
 	if err != nil {
 		return models.DBShortenRow{}, err
@@ -174,11 +174,11 @@ func (db *FileDatabase) GetFullLink(hash string) (models.DBShortenRow, error) {
 	return models.DBShortenRow{URL: byHash.URL}, nil
 }
 
-func (db *FileDatabase) GetUserFullLinks(userID string) (models.DBShortenRowList, error) {
+func (db *FileDatabase) GetUserFullLinks(ctx context.Context, userID string) (models.DBShortenRowList, error) {
 	return db.FindByUserID(userID)
 }
 
-func (db *FileDatabase) RemoveUserLinks(userID string, ids []string) error {
+func (db *FileDatabase) RemoveUserLinks(ctx context.Context, userID string, ids []string) error {
 	return nil
 }
 
