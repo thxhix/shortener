@@ -8,6 +8,7 @@ import (
 	customErrors "github.com/thxhix/shortener/internal/errors"
 	"github.com/thxhix/shortener/internal/middleware"
 	"github.com/thxhix/shortener/internal/models"
+	"log"
 	"sync"
 )
 
@@ -17,7 +18,7 @@ type URLUseCaseInterface interface {
 	PingDB() error
 	BatchShorten(ctx context.Context, list models.BatchShortenRequestList) (models.BatchShortenResponseList, error)
 	UserList(userID string) (models.UserLinksResponseList, error)
-	UserDeleteRows(userID string, ids []string) error
+	UserDeleteRows(userID string, ids []string)
 }
 
 var ErrLinkDeleted = errors.New("DELETED")
@@ -108,7 +109,7 @@ func (u *URLUseCase) UserList(userID string) (models.UserLinksResponseList, erro
 	return result, nil
 }
 
-func (u *URLUseCase) UserDeleteRows(userID string, ids []string) error {
+func (u *URLUseCase) UserDeleteRows(userID string, ids []string) {
 	numWorkers := 10
 	batchSize := 1000
 
@@ -116,11 +117,15 @@ func (u *URLUseCase) UserDeleteRows(userID string, ids []string) error {
 	batchCh := make(chan []string)
 
 	for i := 0; i < numWorkers; i++ {
+		workerID := i
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
 			for batch := range batchCh {
-				_ = u.database.RemoveUserLinks(userID, batch)
+				if err := u.database.RemoveUserLinks(userID, batch); err != nil {
+					log.Printf("[worker %d] UserDeleteRows ошибка при удалении ссылок: %v", workerID, err)
+					continue
+				}
 			}
 		}()
 	}
@@ -136,6 +141,4 @@ func (u *URLUseCase) UserDeleteRows(userID string, ids []string) error {
 
 	close(batchCh)
 	wg.Wait()
-
-	return nil
 }
