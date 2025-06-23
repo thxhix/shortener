@@ -8,6 +8,7 @@ import (
 	"errors"
 	"github.com/thxhix/shortener/internal/database/interfaces"
 	"github.com/thxhix/shortener/internal/models"
+	"log"
 	"os"
 )
 
@@ -76,8 +77,8 @@ func (db *FileDatabase) FindByUserID(userID string) (models.DBShortenRowList, er
 	scanner := bufio.NewScanner(db.file)
 	for scanner.Scan() {
 		var row models.DBShortenRow
-		err := json.Unmarshal(scanner.Bytes(), &row)
-		if err != nil {
+		if err := json.Unmarshal(scanner.Bytes(), &row); err != nil {
+			log.Printf("ошибка чтения строки из файла: %v", err)
 			continue
 		}
 
