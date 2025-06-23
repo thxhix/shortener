@@ -3,7 +3,11 @@ package drivers
 import (
 	"context"
 	"database/sql"
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/lib/pq"
+	_ "github.com/lib/pq"
 	customErrors "github.com/thxhix/shortener/internal/errors"
 	"github.com/thxhix/shortener/internal/models"
 	"log"
@@ -12,6 +16,24 @@ import (
 
 type PostgresQLDatabase struct {
 	driver *sql.DB
+}
+
+func (p *PostgresQLDatabase) RunMigrations() error {
+	driver, err := postgres.WithInstance(p.driver, &postgres.Config{})
+	if err != nil {
+		return err
+	}
+	m, err := migrate.NewWithDatabaseInstance(
+		"file://migrations",
+		"postgres", driver)
+	if err != nil {
+		return err
+	}
+	err = m.Up()
+	if err != nil && err != migrate.ErrNoChange {
+		return err
+	}
+	return nil
 }
 
 func (db *PostgresQLDatabase) AddLink(ctx context.Context, original string, shorten string, userID string) (string, error) {

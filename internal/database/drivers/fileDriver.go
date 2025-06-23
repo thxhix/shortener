@@ -33,6 +33,10 @@ func NewFileDatabase(filePath string) (interfaces.Database, error) {
 	}, nil
 }
 
+func (p *FileDatabase) RunMigrations() error {
+	return nil
+}
+
 func (db *FileDatabase) Close() error {
 	return db.file.Close()
 }

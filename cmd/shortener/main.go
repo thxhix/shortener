@@ -3,7 +3,6 @@ package main
 import (
 	"github.com/thxhix/shortener/internal/config"
 	"github.com/thxhix/shortener/internal/database"
-	"github.com/thxhix/shortener/internal/database/migrations"
 	r "github.com/thxhix/shortener/internal/router"
 	http "github.com/thxhix/shortener/internal/server"
 	"go.uber.org/zap"
@@ -22,7 +21,7 @@ func main() {
 	}
 
 	// Кривое исполнение, но пока не представляю как работают миграции в Go
-	err = migrations.Migrate(db)
+	err = db.RunMigrations()
 	if err != nil {
 		log.Fatal(err)
 	}

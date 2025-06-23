@@ -14,6 +14,10 @@ type MemoryDatabase struct {
 	mutex   sync.RWMutex
 }
 
+func (p *MemoryDatabase) RunMigrations() error {
+	return nil
+}
+
 func (db *MemoryDatabase) AddLink(ctx context.Context, original string, shorten string, userID string) (string, error) {
 	db.mutex.Lock()
 	defer db.mutex.Unlock()

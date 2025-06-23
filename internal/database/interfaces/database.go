@@ -7,6 +7,7 @@ import (
 )
 
 type Database interface {
+	RunMigrations() error
 	AddLink(ctx context.Context, original string, shorten string, userID string) (string, error)
 	AddLinks(ctx context.Context, list models.DBShortenRowList, userID string) error
 	GetFullLink(ctx context.Context, hash string) (models.DBShortenRow, error)
