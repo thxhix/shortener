@@ -20,7 +20,7 @@ func NewRouter(cfg *config.Config, db interfaces.Database, logger *zap.SugaredLo
 		// Кидаем на группу мидлвару с логами
 		r.Use(middleware.WithLogging(logger))
 		r.Use(middleware.CompressorMiddleware)
-		r.Use(middleware.Auth())
+		r.Use(middleware.Auth(cfg.SecretKey))
 
 		r.Post("/", handlers.StoreLink)
 		r.Get("/{id}", handlers.Redirect)

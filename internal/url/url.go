@@ -19,7 +19,7 @@ type URLUseCaseInterface interface {
 	PingDB() error
 	BatchShorten(ctx context.Context, list models.BatchShortenRequestList) (models.BatchShortenResponseList, error)
 	UserList(ctx context.Context, userID string) (models.UserLinksResponseList, error)
-	UserDeleteRows(userID string, ids []string)
+	UserDeleteRows(userID string, ids []string, numWorkers int, batchSize int)
 }
 
 var ErrLinkDeleted = errors.New("DELETED")
@@ -110,12 +110,9 @@ func (u *URLUseCase) UserList(ctx context.Context, userID string) (models.UserLi
 	return result, nil
 }
 
-func (u *URLUseCase) UserDeleteRows(userID string, ids []string) {
+func (u *URLUseCase) UserDeleteRows(userID string, ids []string, numWorkers int, batchSize int) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-
-	numWorkers := 10
-	batchSize := 1000
 
 	var wg sync.WaitGroup
 	batchCh := make(chan []string)

@@ -15,22 +15,21 @@ type ctxKey string
 
 const (
 	cookieName string = "token"
-	secretKey  string = "yp_iter14"
 	separator  string = "."
 	UserIDKey  ctxKey = "user_id"
 )
 
-func Auth() func(http.Handler) http.Handler {
+func Auth(secretKey string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// ИЛИ если secretKey "левый" — создаём новый и пихаем в ответ
 			cookie, err := r.Cookie(cookieName)
 			var userID string
 
-			if err != nil || !isValidCookie(cookie) {
+			if err != nil || !isValidCookie(cookie, secretKey) {
 				// Куки нет или она невалидна — создаем новую
 				userID = uuid.NewString()
-				signature := generateToken(userID)
+				signature := generateToken(userID, secretKey)
 				token := userID + separator + signature
 
 				http.SetCookie(w, &http.Cookie{
@@ -51,7 +50,7 @@ func Auth() func(http.Handler) http.Handler {
 	}
 }
 
-func isValidCookie(cookie *http.Cookie) bool {
+func isValidCookie(cookie *http.Cookie, secretKey string) bool {
 	if cookie == nil {
 		return false
 	}
@@ -59,17 +58,17 @@ func isValidCookie(cookie *http.Cookie) bool {
 	if len(parts) != 2 {
 		return false
 	}
-	return verifyToken(parts[0], parts[1])
+	return verifyToken(parts[0], parts[1], secretKey)
 }
 
-func generateToken(userID string) string {
+func generateToken(userID string, secretKey string) string {
 	h := hmac.New(sha256.New, []byte(secretKey))
 	h.Write([]byte(userID))
 	return hex.EncodeToString(h.Sum(nil))
 }
 
-func verifyToken(userID string, signature string) bool {
-	expected := generateToken(userID)
+func verifyToken(userID string, signature string, secretKey string) bool {
+	expected := generateToken(userID, secretKey)
 	return hmac.Equal([]byte(expected), []byte(signature))
 }
 

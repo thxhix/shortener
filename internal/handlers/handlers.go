@@ -256,7 +256,7 @@ func (h *Handler) UserDeleteRows(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go h.URLUsecase.UserDeleteRows(middleware.GetUserID(r.Context()), ids)
+	go h.URLUsecase.UserDeleteRows(middleware.GetUserID(r.Context()), ids, h.config.DeleteWorkersCount, h.config.DeleteBatchSize)
 
 	w.WriteHeader(http.StatusAccepted)
 }
