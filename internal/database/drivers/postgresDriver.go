@@ -92,9 +92,6 @@ func (db *PostgresQLDatabase) AddLinks(ctx context.Context, list models.DBShorte
 }
 
 func (db *PostgresQLDatabase) GetFullLink(ctx context.Context, hash string) (models.DBShortenRow, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
 	query := "SELECT id, original, shorten, is_deleted, created_at FROM shortener WHERE (shorten) LIKE ($1)"
 
 	row := db.driver.QueryRowContext(ctx, query, hash)
@@ -127,9 +124,6 @@ func (db *PostgresQLDatabase) PingConnection() error {
 func (db *PostgresQLDatabase) GetDriver() *sql.DB { return db.driver }
 
 func (db *PostgresQLDatabase) GetUserFullLinks(ctx context.Context, userID string) (models.DBShortenRowList, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
 	if userID == "" {
 		return nil, nil
 	}
@@ -165,9 +159,6 @@ func (db *PostgresQLDatabase) RemoveUserLinks(ctx context.Context, userID string
 	if len(ids) == 0 {
 		return nil
 	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
 
 	query := `UPDATE shortener SET is_deleted = true 
 	          WHERE user_id = $1 AND shorten = ANY($2)`

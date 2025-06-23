@@ -10,7 +10,7 @@ func Migrate(db interfaces.Database) error {
 			id SERIAL PRIMARY KEY,
 			original VARCHAR(512) UNIQUE NOT NULL,
 			shorten VARCHAR(10) UNIQUE NOT NULL,
-			user_id UUID NULL,
+			user_id UUID,
 			is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
 			created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 		);
