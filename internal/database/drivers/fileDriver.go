@@ -33,7 +33,7 @@ func NewFileDatabase(filePath string) (interfaces.Database, error) {
 	}, nil
 }
 
-func (p *FileDatabase) RunMigrations() error {
+func (db *FileDatabase) RunMigrations() error {
 	return nil
 }
 

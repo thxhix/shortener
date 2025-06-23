@@ -14,7 +14,7 @@ type MemoryDatabase struct {
 	mutex   sync.RWMutex
 }
 
-func (p *MemoryDatabase) RunMigrations() error {
+func (db *MemoryDatabase) RunMigrations() error {
 	return nil
 }
 

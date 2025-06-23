@@ -7,7 +7,6 @@ import (
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/lib/pq"
-	_ "github.com/lib/pq"
 	customErrors "github.com/thxhix/shortener/internal/errors"
 	"github.com/thxhix/shortener/internal/models"
 	"log"
@@ -18,8 +17,8 @@ type PostgresQLDatabase struct {
 	driver *sql.DB
 }
 
-func (p *PostgresQLDatabase) RunMigrations() error {
-	driver, err := postgres.WithInstance(p.driver, &postgres.Config{})
+func (db *PostgresQLDatabase) RunMigrations() error {
+	driver, err := postgres.WithInstance(db.driver, &postgres.Config{})
 	if err != nil {
 		return err
 	}
