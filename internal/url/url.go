@@ -10,6 +10,7 @@ import (
 	"github.com/thxhix/shortener/internal/models"
 	"log"
 	"sync"
+	"time"
 )
 
 type URLUseCaseInterface interface {
@@ -18,7 +19,7 @@ type URLUseCaseInterface interface {
 	PingDB() error
 	BatchShorten(ctx context.Context, list models.BatchShortenRequestList) (models.BatchShortenResponseList, error)
 	UserList(ctx context.Context, userID string) (models.UserLinksResponseList, error)
-	UserDeleteRows(ctx context.Context, userID string, ids []string)
+	UserDeleteRows(userID string, ids []string)
 }
 
 var ErrLinkDeleted = errors.New("DELETED")
@@ -109,7 +110,10 @@ func (u *URLUseCase) UserList(ctx context.Context, userID string) (models.UserLi
 	return result, nil
 }
 
-func (u *URLUseCase) UserDeleteRows(ctx context.Context, userID string, ids []string) {
+func (u *URLUseCase) UserDeleteRows(userID string, ids []string) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
 	numWorkers := 10
 	batchSize := 1000
 
