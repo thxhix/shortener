@@ -12,6 +12,10 @@ import (
 	"os"
 )
 
+var (
+	ErrUserNotFound = errors.New("пользователь не найден")
+)
+
 type FileDatabase struct {
 	file    *os.File
 	encoder *json.Encoder
@@ -90,6 +94,11 @@ func (db *FileDatabase) FindByUserID(userID string) (models.DBShortenRowList, er
 	if err := scanner.Err(); err != nil {
 		return nil, err
 	}
+
+	if len(result) == 0 {
+		return nil, ErrUserNotFound
+	}
+
 	return result, nil
 }
 
