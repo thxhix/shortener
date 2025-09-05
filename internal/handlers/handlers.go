@@ -1,11 +1,13 @@
 package handlers
 
 import (
-	"context"
+	json2 "encoding/json"
 	"errors"
 	"github.com/thxhix/shortener/internal/config"
 	custorErrors "github.com/thxhix/shortener/internal/errors"
+	"github.com/thxhix/shortener/internal/middleware"
 	"github.com/thxhix/shortener/internal/models"
+	urlUseCase "github.com/thxhix/shortener/internal/url"
 	"io"
 	"log"
 	"net/http"
@@ -15,19 +17,12 @@ import (
 	"github.com/mailru/easyjson"
 )
 
-type URLUseCaseInterface interface {
-	Shorten(url string) (string, error)
-	GetFullURL(url string) (string, error)
-	PingDB() error
-	BatchShorten(ctx context.Context, list models.BatchShortenRequestList) (models.BatchShortenResponseList, error)
-}
-
 type Handler struct {
 	config     config.Config
-	URLUsecase URLUseCaseInterface
+	URLUsecase urlUseCase.URLUseCaseInterface
 }
 
-func NewHandler(cfg *config.Config, useCase URLUseCaseInterface) *Handler {
+func NewHandler(cfg *config.Config, useCase urlUseCase.URLUseCaseInterface) *Handler {
 	return &Handler{
 		config:     *cfg,
 		URLUsecase: useCase,
@@ -53,7 +48,7 @@ func (h *Handler) StoreLink(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var isConflict = false
-	link, err := h.URLUsecase.Shorten(parsedURL.String())
+	link, err := h.URLUsecase.Shorten(r.Context(), parsedURL.String())
 	if err != nil {
 		if errors.Is(err, custorErrors.ErrDuplicate) {
 			isConflict = true
@@ -80,8 +75,12 @@ func (h *Handler) StoreLink(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) Redirect(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
-	link, err := h.URLUsecase.GetFullURL(id)
+	link, err := h.URLUsecase.GetFullURL(r.Context(), id)
 	if err != nil {
+		if errors.Is(err, urlUseCase.ErrLinkDeleted) {
+			w.WriteHeader(http.StatusGone)
+			return
+		}
 		http.Error(w, "такой страницы нет", http.StatusBadRequest)
 		return
 	}
@@ -113,7 +112,7 @@ func (h *Handler) APIStoreLink(w http.ResponseWriter, r *http.Request) {
 
 	var isConflict = false
 
-	link, err := h.URLUsecase.Shorten(fullURL.URL)
+	link, err := h.URLUsecase.Shorten(r.Context(), fullURL.URL)
 	if err != nil {
 		if errors.Is(err, custorErrors.ErrDuplicate) {
 			isConflict = true
@@ -200,4 +199,64 @@ func (h *Handler) PingDatabase(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusOK)
+}
+
+func (h *Handler) UserList(w http.ResponseWriter, r *http.Request) {
+	userID := middleware.GetUserID(r.Context())
+
+	if userID == "" {
+		http.Error(w, "неверный данные авторизации..", http.StatusUnauthorized)
+		return
+	}
+
+	links, err := h.URLUsecase.UserList(r.Context(), middleware.GetUserID(r.Context()))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if len(links) == 0 {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+
+	result, err := links.MarshalJSON()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+
+	_, err = w.Write(result)
+	if err != nil {
+		log.Printf("ошибка при записи ответа: %v", err)
+		return
+	}
+}
+
+func (h *Handler) UserDeleteRows(w http.ResponseWriter, r *http.Request) {
+	userID := middleware.GetUserID(r.Context())
+
+	if userID == "" {
+		http.Error(w, "неверный данные авторизации..", http.StatusUnauthorized)
+		return
+	}
+
+	var ids []string
+	jsonBody, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, "не удалось прочитать тело запроса", http.StatusBadRequest)
+		return
+	}
+
+	err = json2.Unmarshal(jsonBody, &ids)
+	if err != nil {
+		http.Error(w, "Ошибка парсинга JSON: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	go h.URLUsecase.UserDeleteRows(middleware.GetUserID(r.Context()), ids, h.config.DeleteWorkersCount, h.config.DeleteBatchSize)
+
+	w.WriteHeader(http.StatusAccepted)
 }

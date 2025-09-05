@@ -7,9 +7,12 @@ import (
 )
 
 type Database interface {
-	AddLink(original string, shorten string) (string, error)
-	AddLinks(ctx context.Context, list models.DBShortenRowList) error
-	GetFullLink(hash string) (string, error)
+	RunMigrations() error
+	AddLink(ctx context.Context, original string, shorten string, userID string) (string, error)
+	AddLinks(ctx context.Context, list models.DBShortenRowList, userID string) error
+	GetFullLink(ctx context.Context, hash string) (models.DBShortenRow, error)
+	GetUserFullLinks(ctx context.Context, userID string) (models.DBShortenRowList, error)
+	RemoveUserLinks(ctx context.Context, userID string, ids []string) error
 	Close() error
 	PingConnection() error
 	GetDriver() *sql.DB

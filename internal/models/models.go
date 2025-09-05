@@ -1,6 +1,8 @@
 package models
 
-import "time"
+import (
+	"time"
+)
 
 //go:generate easyjson -all models.go
 
@@ -19,10 +21,12 @@ type DBShortenRowList []DBShortenRow
 
 //easyjson:json
 type DBShortenRow struct {
-	ID   int       `json:"id"`
-	Hash string    `json:"hash"`
-	URL  string    `json:"url"`
-	Time time.Time `json:"time"`
+	ID        int       `json:"id"`
+	Hash      string    `json:"hash"`
+	URL       string    `json:"url"`
+	Time      time.Time `json:"time"`
+	UserID    string    `json:"user_id"`
+	IsDeleted bool      `json:"is_deleted"`
 }
 
 //easyjson:json
@@ -40,4 +44,17 @@ type BatchShortenResponseList []BatchShortenResponse
 type BatchShortenResponse struct {
 	ID   string `json:"correlation_id"`
 	Hash string `json:"short_url"`
+}
+
+//easyjson:json
+type UserLinksResponseList []UserLinksResponse
+
+type UserLinksResponse struct {
+	Short    string `json:"short_url"`
+	Original string `json:"original_url"`
+}
+
+//easyjson:json
+type IDList struct {
+	IDs []string `json:"ids"`
 }

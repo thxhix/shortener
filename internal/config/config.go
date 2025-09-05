@@ -10,6 +10,11 @@ type Config struct {
 	BaseURL    string `env:"BASE_URL" envDefault:"http://localhost:8080"`
 	DBFileName string `env:"FILE_STORAGE_PATH" envDefault:"./db.json"`
 	PostgresQL string `env:"DATABASE_DSN"`
+
+	SecretKey string `env:"SECRET_KEY" envDefault:"secret"`
+
+	DeleteWorkersCount int `env:"DELETE_WORKERS_COUNT" envDefault:"10"`
+	DeleteBatchSize    int `env:"DELETE_BATCH_SIZE" envDefault:"1000"`
 }
 
 func NewConfig() (*Config, error) {

@@ -14,7 +14,11 @@ type MemoryDatabase struct {
 	mutex   sync.RWMutex
 }
 
-func (db *MemoryDatabase) AddLink(original string, shorten string) (string, error) {
+func (db *MemoryDatabase) RunMigrations() error {
+	return nil
+}
+
+func (db *MemoryDatabase) AddLink(ctx context.Context, original string, shorten string, userID string) (string, error) {
 	db.mutex.Lock()
 	defer db.mutex.Unlock()
 
@@ -25,7 +29,7 @@ func (db *MemoryDatabase) AddLink(original string, shorten string) (string, erro
 	return shorten, nil
 }
 
-func (db *MemoryDatabase) AddLinks(ctx context.Context, list models.DBShortenRowList) error {
+func (db *MemoryDatabase) AddLinks(ctx context.Context, list models.DBShortenRowList, userID string) error {
 	db.mutex.Lock()
 	defer db.mutex.Unlock()
 
@@ -39,15 +43,15 @@ func (db *MemoryDatabase) AddLinks(ctx context.Context, list models.DBShortenRow
 	return nil
 }
 
-func (db *MemoryDatabase) GetFullLink(hash string) (string, error) {
+func (db *MemoryDatabase) GetFullLink(ctx context.Context, hash string) (models.DBShortenRow, error) {
 	db.mutex.RLock()
 	defer db.mutex.RUnlock()
 
 	value, ok := db.storage[hash]
 	if ok {
-		return value, nil
+		return models.DBShortenRow{URL: value}, nil
 	}
-	return "", errors.New("нет такой записи в БД")
+	return models.DBShortenRow{}, errors.New("нет такой записи в БД")
 }
 
 func (db *MemoryDatabase) Close() error {
@@ -59,6 +63,14 @@ func (db *MemoryDatabase) PingConnection() error {
 }
 
 func (db *MemoryDatabase) GetDriver() *sql.DB {
+	return nil
+}
+
+func (db *MemoryDatabase) GetUserFullLinks(ctx context.Context, userID string) (models.DBShortenRowList, error) {
+	return nil, nil
+}
+
+func (db *MemoryDatabase) RemoveUserLinks(ctx context.Context, userID string, ids []string) error {
 	return nil
 }
 

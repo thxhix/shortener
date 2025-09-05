@@ -8,7 +8,12 @@ import (
 	"errors"
 	"github.com/thxhix/shortener/internal/database/interfaces"
 	"github.com/thxhix/shortener/internal/models"
+	"log"
 	"os"
+)
+
+var (
+	ErrUserNotFound = errors.New("пользователь не найден")
 )
 
 type FileDatabase struct {
@@ -26,6 +31,10 @@ func NewFileDatabase(filePath string) (interfaces.Database, error) {
 		file:    file,
 		encoder: json.NewEncoder(file),
 	}, nil
+}
+
+func (db *FileDatabase) RunMigrations() error {
+	return nil
 }
 
 func (db *FileDatabase) Close() error {
@@ -65,6 +74,38 @@ func (db *FileDatabase) FindByHash(hash string) (*models.DBShortenRow, error) {
 	return nil, errors.New("запись не найдена")
 }
 
+func (db *FileDatabase) FindByUserID(userID string) (models.DBShortenRowList, error) {
+	result := models.DBShortenRowList{}
+
+	_, err := db.file.Seek(0, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	scanner := bufio.NewScanner(db.file)
+	for scanner.Scan() {
+		var row models.DBShortenRow
+		if err := json.Unmarshal(scanner.Bytes(), &row); err != nil {
+			log.Printf("ошибка чтения строки из файла: %v", err)
+			continue
+		}
+
+		if row.UserID == userID {
+			result = append(result, row)
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return nil, err
+	}
+
+	if len(result) == 0 {
+		return nil, ErrUserNotFound
+	}
+
+	return result, nil
+}
+
 func (db *FileDatabase) getLastUUID() (int, error) {
 	_, err := db.file.Seek(0, 0)
 	if err != nil {
@@ -89,7 +130,7 @@ func (db *FileDatabase) getLastUUID() (int, error) {
 	return lastUUID, nil
 }
 
-func (db *FileDatabase) AddLink(original string, shorten string) (string, error) {
+func (db *FileDatabase) AddLink(ctx context.Context, original string, shorten string, userID string) (string, error) {
 	lastID, err := db.getLastUUID()
 	if err != nil {
 		return "", err
@@ -98,9 +139,10 @@ func (db *FileDatabase) AddLink(original string, shorten string) (string, error)
 	newID := lastID + 1
 
 	err = db.WriteRow(&models.DBShortenRow{
-		ID:   newID,
-		Hash: shorten,
-		URL:  original,
+		ID:     newID,
+		Hash:   shorten,
+		URL:    original,
+		UserID: userID,
 	})
 	if err != nil {
 		return "", err
@@ -108,7 +150,7 @@ func (db *FileDatabase) AddLink(original string, shorten string) (string, error)
 	return shorten, nil
 }
 
-func (db *FileDatabase) AddLinks(ctx context.Context, list models.DBShortenRowList) error {
+func (db *FileDatabase) AddLinks(ctx context.Context, list models.DBShortenRowList, userID string) error {
 	for _, link := range list {
 		lastID, err := db.getLastUUID()
 		if err != nil {
@@ -116,6 +158,7 @@ func (db *FileDatabase) AddLinks(ctx context.Context, list models.DBShortenRowLi
 		}
 
 		link.ID = lastID + 1
+		link.UserID = userID
 
 		err = db.WriteRow(&link)
 
@@ -127,12 +170,20 @@ func (db *FileDatabase) AddLinks(ctx context.Context, list models.DBShortenRowLi
 	return nil
 }
 
-func (db *FileDatabase) GetFullLink(hash string) (string, error) {
+func (db *FileDatabase) GetFullLink(ctx context.Context, hash string) (models.DBShortenRow, error) {
 	byHash, err := db.FindByHash(hash)
 	if err != nil {
-		return "", err
+		return models.DBShortenRow{}, err
 	}
-	return byHash.URL, nil
+	return models.DBShortenRow{URL: byHash.URL}, nil
+}
+
+func (db *FileDatabase) GetUserFullLinks(ctx context.Context, userID string) (models.DBShortenRowList, error) {
+	return db.FindByUserID(userID)
+}
+
+func (db *FileDatabase) RemoveUserLinks(ctx context.Context, userID string, ids []string) error {
+	return nil
 }
 
 func (db *FileDatabase) PingConnection() error {
