@@ -15,6 +15,9 @@ type Config struct {
 
 	DeleteWorkersCount int `env:"DELETE_WORKERS_COUNT" envDefault:"10"`
 	DeleteBatchSize    int `env:"DELETE_BATCH_SIZE" envDefault:"1000"`
+
+	EnableProfiler  bool   `env:"ENABLE_PROFILER" envDefault:"false"`
+	ProfilerAddress string `env:"PROFILER_ADDRESS" envDefault:"localhost:9090"`
 }
 
 func NewConfig() (*Config, error) {
@@ -34,6 +37,7 @@ func (c *Config) parseFlags() {
 	baseURL := flag.String("b", c.BaseURL, "Base URL (например, http://example.com:8080)")
 	dbFile := flag.String("f", c.DBFileName, "Путь к файлу БД (например, ./db.json)")
 	postgres := flag.String("d", c.PostgresQL, "PostgreSQL DSN")
+	enablePprof := flag.Bool("pprof", false, "Включить pprof (профайлер)")
 
 	flag.Parse()
 
@@ -41,4 +45,5 @@ func (c *Config) parseFlags() {
 	c.BaseURL = *baseURL
 	c.DBFileName = *dbFile
 	c.PostgresQL = *postgres
+	c.EnableProfiler = *enablePprof
 }
