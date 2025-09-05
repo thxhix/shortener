@@ -134,10 +134,14 @@ func (db *FileDatabase) getLastUUID() (int, error) {
 		}
 
 		// Ищем последний '\n' в этом блоке
+		// внутри цикла
 		if i := bytes.LastIndexByte(buf, '\n'); i >= 0 {
-			// всё после него + накопленное — это последняя строка
 			line := append(buf[i+1:], carry...)
 			line = bytes.TrimRight(line, "\r\n \t")
+
+			if len(line) == 0 {
+				return 0, nil // пустая строка в конце файла
+			}
 
 			var row struct {
 				ID int `json:"id"`
@@ -147,6 +151,7 @@ func (db *FileDatabase) getLastUUID() (int, error) {
 			}
 			return row.ID, nil
 		}
+
 		// Не нашли перевод строки — накапливаем и идём дальше к началу файла
 		carry = append(buf, carry...)
 	}
