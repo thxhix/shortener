@@ -21,3 +21,17 @@ func BenchmarkShorten(b *testing.B) {
 		_, _ = uc.Shorten(ctx, "https://example.com/bench"+strconv.Itoa(i))
 	}
 }
+
+func BenchmarkGetFullURL(b *testing.B) {
+	cfg := config.Config{BaseURL: "http://localhost:8080"}
+	db, _ := drivers.NewFileDatabase("./tmp_bench.json")
+	uc := NewURLUseCase(db, cfg)
+
+	ctx := context.Background()
+
+	shorten, _ := uc.Shorten(ctx, "https://example.com/bench")
+
+	b.ResetTimer()
+
+	_, _ = uc.GetFullURL(ctx, shorten)
+}
