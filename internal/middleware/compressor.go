@@ -12,6 +12,9 @@ type compressedResponseWriter struct {
 	Writer *gzip.Writer
 }
 
+// Write writes the given bytes to the underlying gzip.Writer,
+// compressing the response body before sending it to the client.
+// It satisfies the http.ResponseWriter interface.
 func (g compressedResponseWriter) Write(b []byte) (int, error) {
 	return g.Writer.Write(b)
 }

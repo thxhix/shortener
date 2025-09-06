@@ -253,6 +253,20 @@ func (h *Handler) UserList(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// UserDeleteRows handles DELETE requests to remove a batch of user links.
+//
+// It expects the request body to contain a JSON array of link IDs:
+//
+//	["id1", "id2", "id3"]
+//
+// The userID is extracted from the request context (set by the Auth middleware).
+// If the user is not authenticated, the handler responds with 401 Unauthorized.
+// If the request body cannot be read, it responds with 400 Bad Request.
+// If the JSON is invalid, it responds with 400 Bad Request.
+//
+// The actual deletion is performed asynchronously using background workers.
+// The handler immediately returns 202 Accepted to signal that the request
+// was received and scheduled for processing.
 func (h *Handler) UserDeleteRows(w http.ResponseWriter, r *http.Request) {
 	userID := middleware.GetUserID(r.Context())
 

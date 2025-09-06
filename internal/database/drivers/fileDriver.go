@@ -14,7 +14,7 @@ import (
 
 var (
 	// ErrUserNotFound is returned when no records exist for the given user ID.
-	ErrUserNotFound = errors.New("пользователь не найден")
+	ErrUserNotFound = errors.New("user not found")
 )
 
 // FileDatabase implements the Database interface, and using a JSON-lines file.
