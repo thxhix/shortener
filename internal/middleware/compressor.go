@@ -16,6 +16,16 @@ func (g compressedResponseWriter) Write(b []byte) (int, error) {
 	return g.Writer.Write(b)
 }
 
+// CompressorMiddleware is an HTTP middleware that provides gzip
+// compression and decompression for requests and responses.
+//
+//   - If the request has Content-Encoding: gzip, the body is decompressed
+//     before passing it to the next handler.
+//   - If the client supports Accept-Encoding: gzip and the response Content-Type
+//     is "text/html" or "application/json", the response is compressed.
+//
+// If gzip initialization or closing fails, the middleware writes an error response
+// or logs a fatal error.
 func CompressorMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if strings.Contains(r.Header.Get("Content-Encoding"), "gzip") {

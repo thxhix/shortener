@@ -16,9 +16,17 @@ type ctxKey string
 const (
 	cookieName string = "token"
 	separator  string = "."
-	UserIDKey  ctxKey = "user_id"
+
+	// UserIDKey is the context key used to store the authenticated user ID.
+	UserIDKey ctxKey = "user_id"
 )
 
+// Auth checks authorize cookie from request, or generate new if not exists.
+//
+// If authorized cookie is present, the user ID is extracted and placed into the request context.
+// If the cookie is missing or invalid, a new user ID is generated, signed, and set as a cookie.
+//
+// The user ID can be retrieved later from the request context using GetUserID.
 func Auth(secretKey string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -72,6 +80,8 @@ func verifyToken(userID string, signature string, secretKey string) bool {
 	return hmac.Equal([]byte(expected), []byte(signature))
 }
 
+// GetUserID extracts the user ID from the given context.
+// If no user ID is found, it returns an empty string.
 func GetUserID(ctx context.Context) string {
 	val := ctx.Value(UserIDKey)
 	if uid, ok := val.(string); ok {

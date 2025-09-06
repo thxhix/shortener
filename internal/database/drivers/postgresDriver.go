@@ -13,10 +13,27 @@ import (
 	"time"
 )
 
+// PostgresQLDatabase implements the Database interface using PostgreSQL.
+// It stores shortened URLs in the "shortener" table and supports
+// migrations, transactions, and user-specific queries.
 type PostgresQLDatabase struct {
 	driver *sql.DB
 }
 
+// NewPQLDatabase creates a new PostgresQLDatabase instance with the given DSN.
+// Returns an error if the connection cannot be opened.
+func NewPQLDatabase(params string) (*PostgresQLDatabase, error) {
+	db, err := sql.Open("postgres", params)
+	if err != nil {
+		return nil, err
+	}
+	return &PostgresQLDatabase{
+		driver: db,
+	}, nil
+}
+
+// RunMigrations runs pending database migrations from the "migrations" folder.
+// If no changes are required, it succeeds silently.
 func (db *PostgresQLDatabase) RunMigrations() error {
 	driver, err := postgres.WithInstance(db.driver, &postgres.Config{})
 	if err != nil {
@@ -35,6 +52,9 @@ func (db *PostgresQLDatabase) RunMigrations() error {
 	return nil
 }
 
+// AddLink inserts a single link into the database.
+// If the original URL already exists, it returns the existing shorten hash
+// and ErrDuplicate.
 func (db *PostgresQLDatabase) AddLink(ctx context.Context, original string, shorten string, userID string) (string, error) {
 	var user interface{}
 	if userID == "" {
@@ -63,6 +83,8 @@ func (db *PostgresQLDatabase) AddLink(ctx context.Context, original string, shor
 	return insertedShorten, nil
 }
 
+// AddLinks inserts multiple links into the database in a transaction.
+// If any insert fails, the transaction is rolled back.
 func (db *PostgresQLDatabase) AddLinks(ctx context.Context, list models.DBShortenRowList, userID string) (err error) {
 	tx, err := db.driver.BeginTx(ctx, nil)
 	if err != nil {
@@ -112,6 +134,8 @@ func (db *PostgresQLDatabase) AddLinks(ctx context.Context, list models.DBShorte
 	return
 }
 
+// GetFullLink retrieves a link by its hash.
+// Returns an error if the hash is not found.
 func (db *PostgresQLDatabase) GetFullLink(ctx context.Context, hash string) (models.DBShortenRow, error) {
 	query := "SELECT id, original, shorten, is_deleted, created_at FROM shortener WHERE (shorten) LIKE ($1)"
 
@@ -132,18 +156,24 @@ func (db *PostgresQLDatabase) GetFullLink(ctx context.Context, hash string) (mod
 	return data, nil
 }
 
+// Close closes the underlying PostgreSQL connection.
 func (db *PostgresQLDatabase) Close() error {
 	return db.driver.Close()
 }
 
+// PingConnection checks whether the PostgreSQL connection is alive.
+// Uses a 1-second timeout context.
 func (db *PostgresQLDatabase) PingConnection() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 	return db.driver.PingContext(ctx)
 }
 
+// GetDriver returns the underlying *sql.DB driver instance.
 func (db *PostgresQLDatabase) GetDriver() *sql.DB { return db.driver }
 
+// GetUserFullLinks retrieves all links created by the given user.
+// Returns an empty slice if the user has no links.
 func (db *PostgresQLDatabase) GetUserFullLinks(ctx context.Context, userID string) (models.DBShortenRowList, error) {
 	if userID == "" {
 		return nil, nil
@@ -176,6 +206,8 @@ func (db *PostgresQLDatabase) GetUserFullLinks(ctx context.Context, userID strin
 	return results, nil
 }
 
+// RemoveUserLinks marks user links as deleted by setting is_deleted = true.
+// Returns an error if the update fails.
 func (db *PostgresQLDatabase) RemoveUserLinks(ctx context.Context, userID string, ids []string) error {
 	if len(ids) == 0 {
 		return nil
@@ -185,14 +217,4 @@ func (db *PostgresQLDatabase) RemoveUserLinks(ctx context.Context, userID string
 	          WHERE user_id = $1 AND shorten = ANY($2)`
 	_, err := db.driver.ExecContext(ctx, query, userID, pq.Array(ids))
 	return err
-}
-
-func NewPQLDatabase(params string) (*PostgresQLDatabase, error) {
-	db, err := sql.Open("postgres", params)
-	if err != nil {
-		return nil, err
-	}
-	return &PostgresQLDatabase{
-		driver: db,
-	}, nil
 }
