@@ -14,17 +14,12 @@ import (
 type ctxKey string
 
 const (
-	// cookieName is the name of the authentication cookie
-	// used to store the signed user token.
 	cookieName string = "token"
-
-	// separator is the delimiter used to split userID and its signature
-	// inside the authentication cookie value.
-	separator string = "."
-
-	// UserIDKey is the context key used to store the authenticated user ID.
-	UserIDKey ctxKey = "user_id"
+	separator  string = "."
 )
+
+// UserIDKey is the context key used to store the authenticated user ID.
+const UserIDKey ctxKey = "user_id"
 
 // Auth checks authorize cookie from request, or generate new if not exists.
 //
