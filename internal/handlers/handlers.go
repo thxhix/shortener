@@ -17,11 +17,15 @@ import (
 	"github.com/mailru/easyjson"
 )
 
+// Handler groups all HTTP handlers for the URL shortener service.
+// It provides endpoints for creating, retrieving, listing and deleting links.
 type Handler struct {
 	config     config.Config
 	URLUsecase urlUseCase.URLUseCaseInterface
 }
 
+// NewHandler creates a new Handler instance with the given configuration
+// and URL use case implementation.
 func NewHandler(cfg *config.Config, useCase urlUseCase.URLUseCaseInterface) *Handler {
 	return &Handler{
 		config:     *cfg,
@@ -29,6 +33,9 @@ func NewHandler(cfg *config.Config, useCase urlUseCase.URLUseCaseInterface) *Han
 	}
 }
 
+// StoreLink It reads the raw URL from the request body, validates it,
+// and returns a shortened link as plain text
+// Responds with 201 Created on success or 409 Conflict if the URL already exists.
 func (h *Handler) StoreLink(w http.ResponseWriter, r *http.Request) {
 	targetURL, err := io.ReadAll(r.Body)
 	defer func() {
@@ -72,6 +79,9 @@ func (h *Handler) StoreLink(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Redirect It looks up the full URL by the short hash and issues a 307 redirect.
+// If the link was deleted, responds with 410 Gone.
+// If the link does not exist, responds with 400 Bad Request.
 func (h *Handler) Redirect(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
@@ -89,7 +99,9 @@ func (h *Handler) Redirect(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusTemporaryRedirect)
 }
 
-// * Было замечание насчет названия метода, но в итоге не придумал ничего лучше. Кажется итак сойдет..
+// APIStoreLink It reads a JSON payload with the original URL, validates it,
+// and returns a JSON response containing the shortened URL.
+// Responds with 201 Created on success or 409 Conflict if the URL already exists.
 func (h *Handler) APIStoreLink(w http.ResponseWriter, r *http.Request) {
 	json, err := io.ReadAll(r.Body)
 	defer func() {
@@ -145,6 +157,8 @@ func (h *Handler) APIStoreLink(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// BatchStoreLink It reads a JSON array of objects with correlation_id and original_url,
+// validates the input, and returns a JSON array of shortened links.
 func (h *Handler) BatchStoreLink(w http.ResponseWriter, r *http.Request) {
 	json, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -192,6 +206,8 @@ func (h *Handler) BatchStoreLink(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// PingDatabase It checks the database connectivity and responds with 200 OK if successful,
+// or 500 Internal Server Error otherwise.
 func (h *Handler) PingDatabase(w http.ResponseWriter, r *http.Request) {
 	err := h.URLUsecase.PingDB()
 	if err != nil {
@@ -201,6 +217,8 @@ func (h *Handler) PingDatabase(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+// UserList It returns all URLs belonging to the authenticated user.
+// If the user has no links, responds with 204 No Content.
 func (h *Handler) UserList(w http.ResponseWriter, r *http.Request) {
 	userID := middleware.GetUserID(r.Context())
 
@@ -235,6 +253,20 @@ func (h *Handler) UserList(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// UserDeleteRows handles DELETE requests to remove a batch of user links.
+//
+// It expects the request body to contain a JSON array of link IDs:
+//
+//	["id1", "id2", "id3"]
+//
+// The userID is extracted from the request context (set by the Auth middleware).
+// If the user is not authenticated, the handler responds with 401 Unauthorized.
+// If the request body cannot be read, it responds with 400 Bad Request.
+// If the JSON is invalid, it responds with 400 Bad Request.
+//
+// The actual deletion is performed asynchronously using background workers.
+// The handler immediately returns 202 Accepted to signal that the request
+// was received and scheduled for processing.
 func (h *Handler) UserDeleteRows(w http.ResponseWriter, r *http.Request) {
 	userID := middleware.GetUserID(r.Context())
 

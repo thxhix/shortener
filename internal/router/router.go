@@ -10,6 +10,28 @@ import (
 	"go.uber.org/zap"
 )
 
+// NewRouter creates and configures a new chi.Mux router instance.
+// It sets up the URL shortening use case, attaches middleware,
+// and registers all HTTP endpoints for the service:
+//
+//   - POST   /               → Store a short link
+//
+//   - GET    /{id}           → Redirect to original URL
+//
+//   - GET    /ping           → Ping database
+//
+//   - GET    /api/user/urls  → List user links
+//
+//   - DELETE /api/user/urls  → Delete user links
+//
+//   - POST   /api/shorten          → Store a short link via API
+//
+//   - POST   /api/shorten/batch    → Store multiple links via API
+//
+// The following middleware are applied to the root route group:
+//   - WithLogging: request logging using zap logger
+//   - CompressorMiddleware: response compression
+//   - Auth: authentication based on SecretKey
 func NewRouter(cfg *config.Config, db interfaces.Database, logger *zap.SugaredLogger) *chi.Mux {
 	uc := url.NewURLUseCase(db, *cfg)
 

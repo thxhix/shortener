@@ -12,15 +12,19 @@ import (
 	"os"
 )
 
-var (
-	ErrUserNotFound = errors.New("пользователь не найден")
-)
+// ErrUserNotFound is returned when no records exist for the given user ID.
+var ErrUserNotFound = errors.New("user not found")
 
+// FileDatabase implements the Database interface, and using a JSON-lines file.
+// Each record is stored as a single JSON object per line.
 type FileDatabase struct {
 	file    *os.File
 	encoder *json.Encoder
 }
 
+// NewFileDatabase creates a new FileDatabase instance for the given file path.
+// If the file does not exist, it will be created.
+// Returns an error if the file cannot be opened.g
 func NewFileDatabase(filePath string) (interfaces.Database, error) {
 	file, err := os.OpenFile(filePath, os.O_RDWR|os.O_CREATE, 0666)
 	if err != nil {
@@ -33,14 +37,19 @@ func NewFileDatabase(filePath string) (interfaces.Database, error) {
 	}, nil
 }
 
+// RunMigrations is a no-op for FileDatabase.
+// Always returns nil.
 func (db *FileDatabase) RunMigrations() error {
 	return nil
 }
 
+// Close closes the underlying file used by FileDatabase.
 func (db *FileDatabase) Close() error {
 	return db.file.Close()
 }
 
+// WriteRow appends a new DBShortenRow to the file as a JSON object.
+// The file is synced after each write.
 func (db *FileDatabase) WriteRow(row *models.DBShortenRow) error {
 	err := db.encoder.Encode(row)
 	if err != nil {
@@ -49,6 +58,8 @@ func (db *FileDatabase) WriteRow(row *models.DBShortenRow) error {
 	return db.file.Sync()
 }
 
+// FindByHash scans the file and returns the first record matching the hash.
+// Returns an error if not found or if JSON decoding fails.
 func (db *FileDatabase) FindByHash(hash string) (*models.DBShortenRow, error) {
 	_, err := db.file.Seek(0, 0)
 	if err != nil {
@@ -74,6 +85,8 @@ func (db *FileDatabase) FindByHash(hash string) (*models.DBShortenRow, error) {
 	return nil, errors.New("запись не найдена")
 }
 
+// FindByUserID scans the file and returns all records for the given user ID.
+// Returns ErrUserNotFound if no records exist.
 func (db *FileDatabase) FindByUserID(userID string) (models.DBShortenRowList, error) {
 	result := models.DBShortenRowList{}
 
@@ -106,40 +119,10 @@ func (db *FileDatabase) FindByUserID(userID string) (models.DBShortenRowList, er
 	return result, nil
 }
 
-func (db *FileDatabase) getLastUUID() (int, error) {
-	_, err := db.file.Seek(0, 0)
-	if err != nil {
-		return 0, err
-	}
-
-	scanner := bufio.NewScanner(db.file)
-	var lastUUID int
-
-	for scanner.Scan() {
-		var row models.DBShortenRow
-		err := json.Unmarshal(scanner.Bytes(), &row)
-		if err == nil {
-			lastUUID = row.ID
-		}
-	}
-
-	if err := scanner.Err(); err != nil {
-		return 0, err
-	}
-
-	return lastUUID, nil
-}
-
+// AddLink stores a single shortened link in the file.
+// Returns the hash of the link or an error if writing fails.
 func (db *FileDatabase) AddLink(ctx context.Context, original string, shorten string, userID string) (string, error) {
-	lastID, err := db.getLastUUID()
-	if err != nil {
-		return "", err
-	}
-
-	newID := lastID + 1
-
-	err = db.WriteRow(&models.DBShortenRow{
-		ID:     newID,
+	err := db.WriteRow(&models.DBShortenRow{
 		Hash:   shorten,
 		URL:    original,
 		UserID: userID,
@@ -150,18 +133,13 @@ func (db *FileDatabase) AddLink(ctx context.Context, original string, shorten st
 	return shorten, nil
 }
 
+// AddLinks stores multiple shortened links in the file.
+// Returns an error if any write fails.
 func (db *FileDatabase) AddLinks(ctx context.Context, list models.DBShortenRowList, userID string) error {
 	for _, link := range list {
-		lastID, err := db.getLastUUID()
-		if err != nil {
-			return err
-		}
 
-		link.ID = lastID + 1
 		link.UserID = userID
-
-		err = db.WriteRow(&link)
-
+		err := db.WriteRow(&link)
 		if err != nil {
 			return err
 		}
@@ -170,6 +148,8 @@ func (db *FileDatabase) AddLinks(ctx context.Context, list models.DBShortenRowLi
 	return nil
 }
 
+// GetFullLink retrieves the original URL by its short hash.
+// Returns an error if the hash does not exist.
 func (db *FileDatabase) GetFullLink(ctx context.Context, hash string) (models.DBShortenRow, error) {
 	byHash, err := db.FindByHash(hash)
 	if err != nil {
@@ -178,16 +158,23 @@ func (db *FileDatabase) GetFullLink(ctx context.Context, hash string) (models.DB
 	return models.DBShortenRow{URL: byHash.URL}, nil
 }
 
+// GetUserFullLinks retrieves all links belonging to the specified user ID.
+// Returns ErrUserNotFound if no records exist.
 func (db *FileDatabase) GetUserFullLinks(ctx context.Context, userID string) (models.DBShortenRowList, error) {
 	return db.FindByUserID(userID)
 }
 
+// RemoveUserLinks is not implemented for FileDatabase.
+// Always returns nil.
 func (db *FileDatabase) RemoveUserLinks(ctx context.Context, userID string, ids []string) error {
 	return nil
 }
 
+// PingConnection always succeeds for FileDatabase.
+// It returns nil to indicate the database is available.
 func (db *FileDatabase) PingConnection() error {
 	return nil
 }
 
+// GetDriver always returns nil for FileDatabase since it has no SQL driver.
 func (db *FileDatabase) GetDriver() *sql.DB { return nil }

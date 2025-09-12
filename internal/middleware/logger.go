@@ -18,19 +18,29 @@ type (
 	}
 )
 
-// Пишем размер
+// Write writes the response body and records its size in bytes.
 func (r *loggingResponseWriter) Write(b []byte) (int, error) {
 	size, err := r.ResponseWriter.Write(b)
 	r.responseData.size += size
 	return size, err
 }
 
-// Пишем http_code
+// WriteHeader writes the HTTP status code to the underlying ResponseWriter
+// and records it for logging.
 func (r *loggingResponseWriter) WriteHeader(statusCode int) {
 	r.ResponseWriter.WriteHeader(statusCode)
 	r.responseData.status = statusCode
 }
 
+// WithLogging returns a middleware that logs HTTP requests and responses
+// using the provided zap.SugaredLogger.
+//
+// It logs the following information for each request:
+//   - URI
+//   - HTTP method
+//   - Response status code
+//   - Duration of request processing
+//   - Response size in bytes
 func WithLogging(logger *zap.SugaredLogger) func(http.Handler) http.Handler {
 	return func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
