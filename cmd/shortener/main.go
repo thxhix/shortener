@@ -3,13 +3,22 @@ package main
 import (
 	"github.com/thxhix/shortener/internal/config"
 	"github.com/thxhix/shortener/internal/database"
+	"github.com/thxhix/shortener/internal/meta"
 	r "github.com/thxhix/shortener/internal/router"
 	http "github.com/thxhix/shortener/internal/server"
 	"go.uber.org/zap"
 	"log"
 )
 
+var (
+	buildVersion string
+	buildDate    string
+	buildCommit  string
+)
+
 func main() {
+	meta.PrintMeta(buildVersion, buildDate, buildCommit)
+
 	cfg, err := config.NewConfig()
 	if err != nil {
 		log.Fatal(err)
