@@ -10,6 +10,9 @@ import (
 	"log"
 )
 
+// buildVersion, buildDate, and buildCommit are global variables that can be
+// set at build time using go build -ldflags to include build metadata such as
+// version, build date, and commit hash. If left empty, "N/A" will be displayed.
 var (
 	buildVersion string
 	buildDate    string
