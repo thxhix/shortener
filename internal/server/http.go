@@ -59,9 +59,9 @@ func (s *Server) StartPooling() error {
 		}()
 	}
 
-	if err := http.ListenAndServe(s.config.Address, s.router); err != nil {
-		return err
+	if !s.config.EnableHTTPS {
+		return http.ListenAndServe(s.config.Address, s.router)
 	}
 
-	return nil
+	return startWithHTTPS(s)
 }

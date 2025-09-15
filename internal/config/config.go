@@ -36,6 +36,9 @@ type Config struct {
 
 	// ProfilerAddress specifies the address for the pprof profiler, e.g. "localhost:9090".
 	ProfilerAddress string `env:"PROFILER_ADDRESS" envDefault:"localhost:9090"`
+
+	// EnableHTTPS turns server as HTTPS protocol, if true
+	EnableHTTPS bool `env:"ENABLE_HTTPS" envDefault:"false"`
 }
 
 // NewConfig loads configuration from environment variables and command-line flags.
@@ -59,6 +62,7 @@ func (c *Config) parseFlags() {
 	dbFile := flag.String("f", c.DBFileName, "Путь к файлу БД (например, ./db.json)")
 	postgres := flag.String("d", c.PostgresQL, "PostgreSQL DSN")
 	enablePprof := flag.Bool("pprof", false, "Включить pprof (профайлер)")
+	enableHTTPS := flag.Bool("s", false, "enable HTTPS mode)")
 
 	flag.Parse()
 
@@ -67,4 +71,5 @@ func (c *Config) parseFlags() {
 	c.DBFileName = *dbFile
 	c.PostgresQL = *postgres
 	c.EnableProfiler = *enablePprof
+	c.EnableHTTPS = *enableHTTPS
 }
