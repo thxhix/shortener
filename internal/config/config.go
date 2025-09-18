@@ -6,8 +6,7 @@ import (
 )
 
 // Config holds application configuration parameters.
-// Values are populated from environment variables and optionally
-// overridden by command-line flags.
+// Load order / priority: defaults <- JSON file (-c/-config/CONFIG) <- ENV <- flags.
 type Config struct {
 	// Address specifies the HTTP server listen address, e.g. "localhost:8080".
 	Address string `env:"SERVER_ADDRESS" envDefault:"localhost:8080"`
@@ -41,11 +40,16 @@ type Config struct {
 	EnableHTTPS bool `env:"ENABLE_HTTPS" envDefault:"false"`
 }
 
-// NewConfig loads configuration from environment variables and command-line flags.
+// NewConfig loads config from a JSON file (low priority), then ENV, then flags.
 // Environment variables take precedence, but values can be overridden via flags.
 // Returns a Config pointer or an error if parsing fails.
 func NewConfig() (*Config, error) {
 	cfg := &Config{}
+
+	if err := cfg.parseFile(); err != nil {
+		return nil, err
+	}
+
 	if err := env.Parse(cfg); err != nil {
 		return nil, err
 	}
@@ -61,8 +65,8 @@ func (c *Config) parseFlags() {
 	baseURL := flag.String("b", c.BaseURL, "Base URL (например, http://example.com:8080)")
 	dbFile := flag.String("f", c.DBFileName, "Путь к файлу БД (например, ./db.json)")
 	postgres := flag.String("d", c.PostgresQL, "PostgreSQL DSN")
-	enablePprof := flag.Bool("pprof", false, "Включить pprof (профайлер)")
-	enableHTTPS := flag.Bool("s", false, "enable HTTPS mode)")
+	enablePprof := flag.Bool("pprof", c.EnableProfiler, "Включить pprof (профайлер)")
+	enableHTTPS := flag.Bool("s", c.EnableHTTPS, "enable HTTPS mode)")
 
 	flag.Parse()
 
