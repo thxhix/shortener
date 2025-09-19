@@ -45,6 +45,10 @@ func (db *FileDatabase) RunMigrations() error {
 
 // Close closes the underlying file used by FileDatabase.
 func (db *FileDatabase) Close() error {
+	if db.file != nil {
+		_ = db.file.Sync()
+		return db.file.Close()
+	}
 	return db.file.Close()
 }
 

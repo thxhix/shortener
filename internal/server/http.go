@@ -8,7 +8,6 @@ import (
 	"github.com/thxhix/shortener/internal/config"
 	"github.com/thxhix/shortener/internal/database/interfaces"
 	"go.uber.org/zap"
-	"log"
 	"net/http"
 	_ "net/http/pprof"
 	"os"
@@ -28,7 +27,7 @@ type ServerInterface interface {
 	// to finish until the provided timeout expires. If the timeout is reached
 	// before all requests are completed, the server is forcefully closed.
 	// The method returns any error encountered during shutdown.
-	StopServer(timeout time.Duration) error
+	StopServer(ctx context.Context) error
 
 	startWithHTTP() error
 	startWithHTTPS() error
@@ -92,9 +91,17 @@ func (s *Server) StartPooling() error {
 	go func() {
 		<-sigint
 
-		if err := s.StopServer(10 * time.Second); err != nil {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+
+		if err := s.StopServer(ctx); err != nil {
 			// server stop error
-			log.Printf("HTTP server Shutdown: %v", err)
+			s.logger.Errorf("HTTP server Shutdown: %v", err)
+		}
+
+		err := s.database.Close()
+		if err != nil {
+			s.logger.Errorf("database Close: %v", err)
 		}
 
 		close(idleConnsClosed)
@@ -148,8 +155,6 @@ func (s *Server) startWithHTTPS() error {
 	return nil
 }
 
-func (s *Server) StopServer(timeout time.Duration) error {
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
+func (s *Server) StopServer(ctx context.Context) error {
 	return s.http.Shutdown(ctx)
 }
