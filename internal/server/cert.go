@@ -11,7 +11,6 @@ import (
 	"fmt"
 	"math/big"
 	"net"
-	"net/http"
 	"time"
 )
 
@@ -64,24 +63,4 @@ func generateSelfSignedCert() (tls.Certificate, error) {
 	keyPEM := pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: keyBytes})
 
 	return tls.X509KeyPair(certPEM, keyPEM)
-}
-
-func startWithHTTPS(s *Server) error {
-	cert, err := getTLSCert()
-	if err != nil {
-		return err
-	}
-
-	cfg := &tls.Config{
-		MinVersion:   tls.VersionTLS12,
-		Certificates: []tls.Certificate{cert},
-	}
-
-	ln, err := tls.Listen("tcp", s.config.Address, cfg)
-	if err != nil {
-		return fmt.Errorf("tls listen: %w", err)
-	}
-
-	s.logger.Infof("HTTPS server started on %s", s.config.Address)
-	return http.Serve(ln, s.router)
 }
