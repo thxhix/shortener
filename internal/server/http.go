@@ -155,6 +155,11 @@ func (s *Server) startWithHTTPS() error {
 	return nil
 }
 
+// StopServer gracefully shuts down the running HTTP server.
+// It stops accepting new connections and waits for in-flight requests
+// to finish until the provided timeout expires. If the timeout is reached
+// before all requests are completed, the server is forcefully closed.
+// The method returns any error encountered during shutdown.
 func (s *Server) StopServer(ctx context.Context) error {
 	return s.http.Shutdown(ctx)
 }
