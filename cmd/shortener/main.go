@@ -1,6 +1,8 @@
 package main
 
 import (
+	"errors"
+	"fmt"
 	"github.com/thxhix/shortener/internal/config"
 	"github.com/thxhix/shortener/internal/database"
 	"github.com/thxhix/shortener/internal/meta"
@@ -8,6 +10,7 @@ import (
 	http "github.com/thxhix/shortener/internal/server"
 	"go.uber.org/zap"
 	"log"
+	"syscall"
 )
 
 // buildVersion, buildDate, and buildCommit are global variables that can be
@@ -40,9 +43,10 @@ func main() {
 
 	zapLogger := zap.NewExample()
 	defer func() {
-		err := zapLogger.Sync()
-		if err != nil {
-			log.Fatal("Error syncing logger", zap.Error(err))
+		if err := zapLogger.Sync(); err != nil &&
+			!errors.Is(err, syscall.ENOTTY) && // "inappropriate ioctl for device"
+			!errors.Is(err, syscall.EINVAL) { // встречается в контейнерах/macOS
+			fmt.Printf("zap sync warning: %v\n", err)
 		}
 	}()
 
