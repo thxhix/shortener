@@ -11,6 +11,8 @@ var (
 	errParse     = errors.New("не удалось прочитать подсеть")
 )
 
+// CheckTrustedSubnet HTTP middleware that restricts access to handlers
+// based on the client's IP address and a configured trusted subnet (CIDR).
 func CheckTrustedSubnet(subnetIP string) func(http.Handler) http.Handler {
 	return func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
