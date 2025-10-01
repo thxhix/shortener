@@ -34,4 +34,14 @@ type Database interface {
 
 	// GetDriver returns the underlying sql.DB object for advanced use.
 	GetDriver() *sql.DB
+
+	// GetUsersCount returns the total number of unique users in the database.
+	// A user is identified by their user_id value. If user_id is NULL, it is ignored.
+	// The method executes a COUNT(DISTINCT user_id) query and returns the result.
+	GetUsersCount(ctx context.Context) (int64, error)
+
+	// GetURLsCount returns the total number of shortened URLs stored in the database.
+	// Deleted URLs (where is_deleted = true) are excluded from the count.
+	// The method executes a COUNT(*) query with the proper filter and returns the result.
+	GetURLsCount(ctx context.Context) (int64, error)
 }

@@ -38,6 +38,9 @@ type Config struct {
 
 	// EnableHTTPS turns server as HTTPS protocol, if true
 	EnableHTTPS bool `env:"ENABLE_HTTPS" envDefault:"false"`
+
+	// TrustedSubnet sets trusted subnet
+	TrustedSubnet string `env:"TRUSTED_SUBNET"`
 }
 
 // NewConfig loads config from a JSON file (low priority), then ENV, then flags.
@@ -66,7 +69,8 @@ func (c *Config) parseFlags() {
 	dbFile := flag.String("f", c.DBFileName, "Путь к файлу БД (например, ./db.json)")
 	postgres := flag.String("d", c.PostgresQL, "PostgreSQL DSN")
 	enablePprof := flag.Bool("pprof", c.EnableProfiler, "Включить pprof (профайлер)")
-	enableHTTPS := flag.Bool("s", c.EnableHTTPS, "enable HTTPS mode)")
+	enableHTTPS := flag.Bool("s", c.EnableHTTPS, "Enable HTTPS mode")
+	trustedSubnet := flag.String("t", c.TrustedSubnet, "Set trusted subnet")
 
 	flag.Parse()
 
@@ -76,4 +80,5 @@ func (c *Config) parseFlags() {
 	c.PostgresQL = *postgres
 	c.EnableProfiler = *enablePprof
 	c.EnableHTTPS = *enableHTTPS
+	c.TrustedSubnet = *trustedSubnet
 }
