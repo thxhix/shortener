@@ -19,6 +19,7 @@ type fileConfig struct {
 	DeleteBatchSize    *int    `json:"delete_batch_size"`
 	EnableProfiler     *bool   `json:"enable_profiler"`
 	ProfilerAddress    *string `json:"profiler_address"`
+	TrustedSubnet      *string `json:"trusted_subnet"`
 }
 
 func (c *Config) parseFile() error {
@@ -75,6 +76,9 @@ func readConfigFile(cfg *Config, path string) error {
 	}
 	if fc.ProfilerAddress != nil {
 		cfg.ProfilerAddress = *fc.ProfilerAddress
+	}
+	if fc.TrustedSubnet != nil {
+		cfg.TrustedSubnet = *fc.TrustedSubnet
 	}
 
 	return nil

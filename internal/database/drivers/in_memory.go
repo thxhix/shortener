@@ -102,3 +102,15 @@ func (db *MemoryDatabase) GetUserFullLinks(ctx context.Context, userID string) (
 func (db *MemoryDatabase) RemoveUserLinks(ctx context.Context, userID string, ids []string) error {
 	return nil
 }
+
+// GetUsersCount returns the total number of unique users in the database.
+// Always empty for in-memory storage
+func (db *MemoryDatabase) GetUsersCount(ctx context.Context) (int64, error) {
+	return 0, nil
+}
+
+// GetURLsCount returns the total number of shortened URLs stored in the database.
+// Gets in-memory storage len
+func (db *MemoryDatabase) GetURLsCount(ctx context.Context) (int64, error) {
+	return int64(len(db.storage)), nil
+}

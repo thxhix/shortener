@@ -28,6 +28,8 @@ import (
 //
 //   - POST   /api/shorten/batch    → Store multiple links via API
 //
+//   - GET    /api/internal/stats  → Service stats (shorten count, users count etc)
+//
 // The following middleware are applied to the root route group:
 //   - WithLogging: request logging using zap logger
 //   - CompressorMiddleware: response compression
@@ -49,7 +51,6 @@ func NewRouter(cfg *config.Config, db interfaces.Database, logger *zap.SugaredLo
 		r.Get("/ping", handlers.PingDatabase)
 
 		r.Route("/api", func(r chi.Router) {
-
 			r.Route("/user", func(r chi.Router) {
 				r.Get("/urls", handlers.UserList)
 				r.Delete("/urls", handlers.UserDeleteRows)
@@ -58,6 +59,11 @@ func NewRouter(cfg *config.Config, db interfaces.Database, logger *zap.SugaredLo
 			r.Route("/shorten", func(r chi.Router) {
 				r.Post("/", handlers.APIStoreLink)
 				r.Post("/batch", handlers.BatchStoreLink)
+			})
+
+			r.Route("/internal", func(r chi.Router) {
+				r.Use(middleware.CheckTrustedSubnet(cfg.TrustedSubnet))
+				r.Get("/stats", handlers.PingDatabase)
 			})
 		})
 	})

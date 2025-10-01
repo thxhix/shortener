@@ -218,3 +218,29 @@ func (db *PostgresQLDatabase) RemoveUserLinks(ctx context.Context, userID string
 	_, err := db.driver.ExecContext(ctx, query, userID, pq.Array(ids))
 	return err
 }
+
+// GetUsersCount returns the total number of unique users in the database.
+// A user is identified by their user_id value. If user_id is NULL, it is ignored.
+// The method executes a COUNT(DISTINCT user_id) query and returns the result.
+func (db *PostgresQLDatabase) GetUsersCount(ctx context.Context) (int64, error) {
+	var count int64
+	err := db.driver.QueryRowContext(ctx, `
+        SELECT COUNT(DISTINCT user_id) 
+        FROM shortener 
+        WHERE user_id IS NOT NULL
+    `).Scan(&count)
+	return count, err
+}
+
+// GetURLsCount returns the total number of shortened URLs stored in the database.
+// Deleted URLs (where is_deleted = true) are excluded from the count.
+// The method executes a COUNT(*) query with the proper filter and returns the result.
+func (db *PostgresQLDatabase) GetURLsCount(ctx context.Context) (int64, error) {
+	var count int64
+	err := db.driver.QueryRowContext(ctx, `
+        SELECT COUNT(*) 
+        FROM shortener 
+        WHERE is_deleted = false
+    `).Scan(&count)
+	return count, err
+}

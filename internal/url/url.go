@@ -38,6 +38,11 @@ type URLUseCaseInterface interface {
 	// numWorkers – number of workers (goroutines).
 	// batchSize – number of links processed per worker batch.
 	UserDeleteRows(userID string, ids []string, numWorkers int, batchSize int)
+
+	// GetServiceStats get internal service stats
+	// URLs – count of shorten urls.
+	// Users – count of unique users
+	GetServiceStats(ctx context.Context) (models.ServiceStats, error)
 }
 
 // ErrLinkDeleted is returned when a deleted link is requested.
@@ -173,4 +178,26 @@ func (u *URLUseCase) UserDeleteRows(userID string, ids []string, numWorkers int,
 
 	close(batchCh)
 	wg.Wait()
+}
+
+// GetServiceStats get internal service stats
+// URLs – count of shorten urls.
+// Users – count of unique users
+func (u *URLUseCase) GetServiceStats(ctx context.Context) (models.ServiceStats, error) {
+	urlCount, err := u.database.GetURLsCount(ctx)
+	if err != nil {
+		return models.ServiceStats{}, err
+	}
+
+	usersCount, err := u.database.GetUsersCount(ctx)
+	if err != nil {
+		return models.ServiceStats{}, err
+	}
+
+	result := models.ServiceStats{
+		URLs:  urlCount,
+		Users: usersCount,
+	}
+
+	return result, nil
 }
