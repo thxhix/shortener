@@ -34,9 +34,7 @@ import (
 //   - WithLogging: request logging using zap logger
 //   - CompressorMiddleware: response compression
 //   - Auth: authentication based on SecretKey
-func NewRouter(cfg *config.Config, db interfaces.Database, logger *zap.SugaredLogger) *chi.Mux {
-	uc := url.NewURLUseCase(db, *cfg)
-
+func NewRouter(cfg *config.Config, db interfaces.Database, logger *zap.SugaredLogger, uc url.URLUseCaseInterface) *chi.Mux {
 	router := chi.NewRouter()
 	handlers := handle.NewHandler(cfg, uc)
 

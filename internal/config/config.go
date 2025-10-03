@@ -41,6 +41,9 @@ type Config struct {
 
 	// TrustedSubnet sets trusted subnet
 	TrustedSubnet string `env:"TRUSTED_SUBNET"`
+
+	// GRPCConfig implements gRPC config.
+	GRPCConfig GRPCConfig
 }
 
 // NewConfig loads config from a JSON file (low priority), then ENV, then flags.
@@ -71,6 +74,7 @@ func (c *Config) parseFlags() {
 	enablePprof := flag.Bool("pprof", c.EnableProfiler, "Включить pprof (профайлер)")
 	enableHTTPS := flag.Bool("s", c.EnableHTTPS, "Enable HTTPS mode")
 	trustedSubnet := flag.String("t", c.TrustedSubnet, "Set trusted subnet")
+	grpcConfig := flag.String("grpca", c.GRPCConfig.Address, "Set gRPC server address")
 
 	flag.Parse()
 
@@ -81,4 +85,5 @@ func (c *Config) parseFlags() {
 	c.EnableProfiler = *enablePprof
 	c.EnableHTTPS = *enableHTTPS
 	c.TrustedSubnet = *trustedSubnet
+	c.GRPCConfig.Address = *grpcConfig
 }
