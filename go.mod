@@ -22,7 +22,6 @@ require (
 require (
 	github.com/BurntSushi/toml v1.2.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/gostaticanalysis/analysisutil v0.7.1 // indirect
 	github.com/gostaticanalysis/comment v1.4.2 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
