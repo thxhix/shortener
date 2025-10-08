@@ -6,6 +6,7 @@ import (
 	"github.com/thxhix/shortener/internal/config"
 	"github.com/thxhix/shortener/internal/database"
 	"github.com/thxhix/shortener/internal/router"
+	"github.com/thxhix/shortener/internal/url"
 	"go.uber.org/zap"
 	"log"
 	"net/http"
@@ -41,7 +42,8 @@ func TestMain(m *testing.M) {
 		}
 	}()
 
-	route = router.NewRouter(&cfg, db, zapLogger.Sugar())
+	uc := url.NewURLUseCase(db, cfg)
+	route = router.NewRouter(&cfg, db, zapLogger.Sugar(), uc)
 
 	os.Exit(m.Run())
 }

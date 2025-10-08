@@ -8,6 +8,7 @@ import (
 	"errors"
 	"github.com/thxhix/shortener/internal/database/interfaces"
 	"github.com/thxhix/shortener/internal/models"
+	"io"
 	"log"
 	"os"
 )
@@ -178,3 +179,28 @@ func (db *FileDatabase) PingConnection() error {
 
 // GetDriver always returns nil for FileDatabase since it has no SQL driver.
 func (db *FileDatabase) GetDriver() *sql.DB { return nil }
+
+// GetUsersCount returns the total number of unique users in the database.
+// Always empty for in-file storage
+func (db *FileDatabase) GetUsersCount(ctx context.Context) (int64, error) {
+	return 0, nil
+}
+
+// GetURLsCount returns the total number of shortened URLs stored in the database.
+// Gets in-file storage len
+func (db *FileDatabase) GetURLsCount(ctx context.Context) (int64, error) {
+	if _, err := db.file.Seek(0, io.SeekStart); err != nil {
+		return 0, err
+	}
+
+	var count int64
+	scanner := bufio.NewScanner(db.file)
+	for scanner.Scan() {
+		count++
+	}
+	if err := scanner.Err(); err != nil {
+		return 0, err
+	}
+
+	return count, nil
+}

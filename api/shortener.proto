@@ -1,0 +1,107 @@
+syntax = "proto3";
+
+package shortener;
+
+option go_package = "github.com/thxhix/shortener/internal/gen";
+
+//protoc -I api --go_out=./internal/gen --go_opt=paths=source_relative \
+//--go-grpc_out=./internal/gen --go-grpc_opt=paths=source_relative \
+//api/shortener.proto
+
+service ShortenerService {
+  rpc StoreLink(StoreLinkRequest) returns (StoreLinkResponse);
+
+  rpc GetFullURL(GetFullURLRequest) returns (GetFullURLResponse);
+
+  rpc BatchStoreLink(BatchStoreLinkRequest) returns (BatchStoreLinkResponse);
+
+  rpc PingDatabase(PingDatabaseRequest) returns (PingDatabaseResponse);
+
+  rpc UserList(UserListRequest) returns (UserListResponse);
+
+  rpc UserDeleteRows(UserDeleteRowsRequest) returns (UserDeleteRowsResponse);
+
+  rpc GetServiceStats(GetServiceStatsRequest) returns (GetServiceStatsResponse);
+}
+
+message StoreLinkRequest {
+  string url = 1;
+  string user_id = 2;
+}
+
+message StoreLinkResponse {
+  string short_url = 1;
+  string error = 2;
+  int32 status_code = 3;
+}
+
+message GetFullURLRequest {
+  string shorten_url = 1;
+}
+
+message GetFullURLResponse {
+  string original_url = 1;
+  string error = 2;
+}
+
+message BatchItem {
+  string correlation_id = 1;
+  string original_url = 2;
+}
+
+message BatchStoreLinkRequest {
+  repeated BatchItem items = 1;
+  string user_id = 2;
+}
+
+message BatchResponseItem {
+  string correlation_id = 1;
+  string short_url = 2;
+}
+
+message BatchStoreLinkResponse {
+  repeated BatchResponseItem items = 1;
+  string error = 2;
+  int32 status_code = 3;
+}
+
+message UserListRequest {
+  string user_id = 1;
+}
+
+message UserURL {
+  string short_url = 1;
+  string original_url = 2;
+}
+
+message UserListResponse {
+  repeated UserURL urls = 1;
+  string error = 2;
+  int32 status_code = 3;
+}
+
+message UserDeleteRowsRequest {
+  repeated string url_ids = 1;
+  string user_id = 2;
+}
+
+message UserDeleteRowsResponse {
+  string error = 1;
+  int32 status_code = 2;
+}
+
+message PingDatabaseRequest {}
+
+message PingDatabaseResponse {
+  string error = 1;
+  int32 status_code = 2;
+}
+
+message GetServiceStatsRequest {}
+
+message GetServiceStatsResponse {
+  int32 urls = 1;
+  int32 users = 2;
+  string error = 3;
+  int32 status_code = 4;
+}

@@ -1,13 +1,16 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/thxhix/shortener/internal/config"
 	"github.com/thxhix/shortener/internal/database"
+	"github.com/thxhix/shortener/internal/grpc"
 	"github.com/thxhix/shortener/internal/meta"
 	r "github.com/thxhix/shortener/internal/router"
 	http "github.com/thxhix/shortener/internal/server"
+	"github.com/thxhix/shortener/internal/url"
 	"go.uber.org/zap"
 	"log"
 	"syscall"
@@ -50,7 +53,15 @@ func main() {
 		}
 	}()
 
-	router := r.NewRouter(cfg, db, zapLogger.Sugar())
+	uc := url.NewURLUseCase(db, *cfg)
+
+	router := r.NewRouter(cfg, db, zapLogger.Sugar(), uc)
+
+	gServer := grpc.New(*cfg, uc, zapLogger.Sugar())
+	err = gServer.StartPooling(context.Background())
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	server := http.NewServer(*cfg, *router, db, zapLogger.Sugar())
 	err = server.StartPooling()

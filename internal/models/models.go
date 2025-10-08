@@ -70,3 +70,9 @@ type UserLinksResponse struct {
 type IDList struct {
 	IDs []string `json:"ids"`
 }
+
+//easyjson:json
+type ServiceStats struct {
+	URLs  int64 `json:"urls"`
+	Users int64 `json:"users"`
+}
