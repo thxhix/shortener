@@ -61,7 +61,7 @@ func NewRouter(cfg *config.Config, db interfaces.Database, logger *zap.SugaredLo
 
 			r.Route("/internal", func(r chi.Router) {
 				r.Use(middleware.CheckTrustedSubnet(cfg.TrustedSubnet))
-				r.Get("/stats", handlers.PingDatabase)
+				r.Get("/stats", handlers.GetServiceStats)
 			})
 		})
 	})

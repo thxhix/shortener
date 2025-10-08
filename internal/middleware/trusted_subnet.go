@@ -14,17 +14,26 @@ var (
 // CheckTrustedSubnet HTTP middleware that restricts access to handlers
 // based on the client's IP address and a configured trusted subnet (CIDR).
 func CheckTrustedSubnet(subnetIP string) func(http.Handler) http.Handler {
+	var (
+		subnet        *net.IPNet
+		trustedSubnet bool
+	)
+
+	trustedSubnet = true
+
+	if subnetIP == "" {
+		trustedSubnet = false
+	}
+
+	_, subnet, err := net.ParseCIDR(subnetIP)
+	if err != nil {
+		trustedSubnet = false
+	}
+
 	return func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if subnetIP == "" {
+			if !trustedSubnet {
 				http.Error(w, errForbidden.Error(), http.StatusForbidden)
-				return
-			}
-
-			_, subnet, err := net.ParseCIDR(subnetIP)
-			if err != nil {
-				err := errParse.Error() + ": " + err.Error()
-				http.Error(w, err, http.StatusInternalServerError)
 				return
 			}
 

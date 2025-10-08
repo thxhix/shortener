@@ -9,10 +9,11 @@ import (
 	"github.com/thxhix/shortener/internal/url"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
-	"net/http"
-	"time"
-
 	"net"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
 // GRPCServer hosts the gRPC endpoints for the URL shortener service.
@@ -21,6 +22,7 @@ import (
 type GRPCServer struct {
 	pb.UnimplementedShortenerServiceServer
 
+	server *grpc.Server
 	cfg    config.Config
 	uc     url.URLUseCaseInterface
 	logger *zap.SugaredLogger
@@ -31,6 +33,7 @@ type GRPCServer struct {
 // to be registered into a *grpc.Server and served.
 func New(cfg config.Config, uc url.URLUseCaseInterface, logger *zap.SugaredLogger) *GRPCServer {
 	return &GRPCServer{
+		server: grpc.NewServer(),
 		cfg:    cfg,
 		uc:     uc,
 		logger: logger,
@@ -46,31 +49,29 @@ func (s *GRPCServer) StartPooling(ctx context.Context) error {
 		return err
 	}
 
-	gs := grpc.NewServer()
-	pb.RegisterShortenerServiceServer(gs, s)
+	pb.RegisterShortenerServiceServer(s.server, s)
 
 	s.logger.Infof("gRPC server listening on %s", s.cfg.GRPCConfig.Address)
 
 	go func() {
-		if serveErr := gs.Serve(lis); serveErr != nil {
+		if serveErr := s.server.Serve(lis); serveErr != nil {
 			s.logger.Errorf("gRPC Serve error: %v", serveErr)
 		}
 	}()
 
-	go func() {
-		<-ctx.Done()
-		stopped := make(chan struct{})
-		go func() {
-			gs.GracefulStop()
-			close(stopped)
-		}()
-		select {
-		case <-stopped:
-		case <-time.After(5 * time.Second):
-			gs.Stop()
-		}
-	}()
+	// Ждём сигнал или отмену контекста
+	sigint := make(chan os.Signal, 1)
+	signal.Notify(sigint, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
 
+	select {
+	case <-ctx.Done():
+		s.logger.Info("Context cancelled, stopping gRPC server")
+	case sig := <-sigint:
+		s.logger.Infof("Received signal %s, stopping gRPC server", sig)
+	}
+
+	// Graceful shutdown
+	s.server.GracefulStop()
 	return nil
 }
 
